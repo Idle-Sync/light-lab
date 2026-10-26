@@ -1,4 +1,4 @@
-import { decodeSceneLink, type Scene, SceneError } from '@light-lab/engine';
+import type { Scene } from '@light-lab/engine';
 import { useEffect } from 'react';
 import { BenchCanvas } from './bench/BenchCanvas';
 import { getCanvasStatus } from './bench/canvas-status';
@@ -12,14 +12,16 @@ import { Header } from './panels/Header';
 import { Inspector } from './panels/Inspector';
 import { Toolbar } from './panels/Toolbar';
 import { bindShortcuts } from './shortcuts';
-import { loadLastScene, saveLastScene } from './storage';
+import {
+  createLinkOpener,
+  isSceneLink,
+  keepLastScene,
+  lastSavedScene,
+  storageOrNull,
+} from './startup';
 import { analyzedEyeId, store, useAppState } from './store';
 
 const engineClient = createEngineClient(startEngineWorker());
-
-function isSceneLink(hash: string): boolean {
-  return hash.startsWith('#z.') || hash.startsWith('#j.');
-}
 
 /** Replaces the scene and fits the view to it; before the canvas has a size, its setup fits instead. */
 function openScene(scene: Scene): void {
@@ -28,43 +30,26 @@ function openScene(scene: Scene): void {
   if (width > 0) store.setView(fitView(scene.objects, { width, height }));
 }
 
+const openLink = createLinkOpener(store, openScene);
+
 /**
  * Opens the scene link in the URL fragment. The fragment is cleared either way, so a reload
  * reopens the last saved scene, edits included, rather than the link.
  */
-async function openLinkInHash(): Promise<void> {
+function openLinkInHash(): void {
   const hash = location.hash;
   if (!isSceneLink(hash)) return;
   history.replaceState(null, '', `${location.pathname}${location.search}`);
-  try {
-    openScene(await decodeSceneLink(hash));
-    store.setLinkError(null);
-  } catch (error) {
-    if (!(error instanceof SceneError)) throw error;
-    store.setLinkError(`This link is not a Light Lab scene: ${error.message}`);
-  }
+  void openLink(hash);
 }
 
-/** Saves every new scene for the next visit and clears a link error once the scene changes. */
-function keepLastScene(): void {
-  let savedScene = store.getState().scene;
-  store.subscribe(() => {
-    const { scene, linkError } = store.getState();
-    if (scene === savedScene) return;
-    savedScene = scene;
-    saveLastScene(localStorage, scene);
-    if (linkError !== null) store.setLinkError(null);
-  });
-}
-
-// Runs once per page load, outside React, so StrictMode's double effects cannot open a scene twice.
-keepLastScene();
-if (isSceneLink(location.hash)) {
-  void openLinkInHash();
-} else {
-  const lastScene = loadLastScene(localStorage);
-  if (lastScene) openScene(lastScene);
-}
+// Runs once per page load, outside React, so StrictMode's double effects cannot open a scene
+// twice. The saved scene opens first, so a broken link leaves it on screen and in storage.
+const storage = storageOrNull(() => window.localStorage);
+keepLastScene(store, storage);
+const lastScene = lastSavedScene(storage);
+if (lastScene) openScene(lastScene);
+openLinkInHash();
 
 export function App() {
   const scene = useAppState((state) => state.scene);
@@ -76,11 +61,8 @@ export function App() {
   useEffect(() => bindShortcuts(store), []);
 
   useEffect(() => {
-    function onHashChange(): void {
-      void openLinkInHash();
-    }
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    window.addEventListener('hashchange', openLinkInHash);
+    return () => window.removeEventListener('hashchange', openLinkInHash);
   }, []);
 
   // Only scene and eye changes reach the worker; view changes redraw without retracing.

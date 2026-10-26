@@ -101,3 +101,41 @@ test('a reload reopens the scene that was on screen', async ({ page }) => {
   await page.reload();
   await expect(page.locator('#bench-description li')).toHaveText(describedObjects(examples.ball));
 });
+
+test('the app runs when the browser blocks site storage', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      get() {
+        throw new DOMException('Access is denied for this document.', 'SecurityError');
+      },
+    });
+  });
+  await page.goto('/');
+  await expectSceneShown(page, examples.bench);
+  await page.getByRole('button', { name: 'Add ruler' }).click();
+  await expect(page.locator('#bench-description li')).toHaveCount(
+    examples.bench.objects.length + 1,
+  );
+});
+
+test('Share shows the link to copy by hand where there is no Clipboard API', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { value: undefined });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect(page.getByLabel('Copy this link')).toHaveValue(/#z\./);
+  await expect(headerStatus(page)).toHaveText('');
+});
+
+test('a broken link at start leaves the saved scene on screen', async ({ page, context }) => {
+  await page.goto(await sceneUrl(examples.ball));
+  await expectSceneShown(page, examples.ball);
+
+  const fresh = await context.newPage();
+  await fresh.goto('/#z.garbage');
+  await expect(fresh.getByRole('banner').getByRole('alert')).toContainText(
+    'This link is not a Light Lab scene',
+  );
+  await expectSceneShown(fresh, examples.ball);
+});
