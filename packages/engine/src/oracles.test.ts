@@ -83,6 +83,7 @@ describe('magnifier oracles', () => {
   });
 
   it('never lets more than all of the light into the pupil', () => {
+    expect(magnifier.totalIntoPupil).toBeGreaterThan(0);
     expect(magnifier.totalIntoPupil).toBeLessThanOrEqual(1);
   });
 });
