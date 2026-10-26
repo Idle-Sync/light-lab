@@ -23,7 +23,7 @@ export function Toolbar() {
     <div
       role="toolbar"
       aria-label="Add to bench"
-      className="absolute top-4 left-4 flex max-h-[calc(100%-2rem)] w-20 flex-col gap-1 overflow-y-auto rounded-[14px] border border-rule bg-bench/90 p-1.5"
+      className="absolute top-4 left-4 flex max-h-[calc(100%-2rem)] w-20 flex-col gap-1 overflow-y-auto rounded-[14px] border border-rule bg-bench/90 p-1.5 max-[760px]:top-auto max-[760px]:right-3 max-[760px]:bottom-[68px] max-[760px]:left-3 max-[760px]:w-auto max-[760px]:flex-row max-[760px]:overflow-x-auto"
     >
       {tools.map((tool) => (
         <Button
