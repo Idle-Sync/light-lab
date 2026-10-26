@@ -1,12 +1,18 @@
+import { readFileSync } from 'node:fs';
 import { deflateRawSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { examples } from './examples';
 import { decodeSceneLink, encodeSceneLink } from './links';
-import { SceneError } from './scene';
+import { parseScene, SceneError } from './scene';
 
 function plainLink(json: string): string {
   return `j.${Buffer.from(json).toString('base64url')}`;
 }
+
+// One sample link per shipped scene version, keyed by version; add one with every new version.
+const sampleLinks: Record<string, string> = JSON.parse(
+  readFileSync(new URL('../test/fixtures/links.json', import.meta.url), 'utf8'),
+);
 
 describe('scene links', () => {
   it('round-trips the bench example through a compressed link', async () => {
@@ -49,5 +55,26 @@ describe('scene links', () => {
   it('rejects a link longer than 64 KB before decoding it', async () => {
     const link = `j.${'A'.repeat(64 * 1024)}`;
     await expect(decodeSceneLink(link)).rejects.toThrowError(/65536-character limit/);
+  });
+
+  it.each(Object.entries(sampleLinks))(
+    'decodes the sample link of version %s',
+    async (version, link) => {
+      const scene = await decodeSceneLink(link);
+      expect(String(scene.v)).toBe(version);
+      expect(scene).toEqual(parseScene(scene));
+    },
+  );
+
+  it('keeps a sample link for every shipped version', () => {
+    expect(Object.keys(sampleLinks)).toEqual(['1']);
+  });
+
+  it('keeps the version 1 bench link under 500 characters', () => {
+    expect(sampleLinks['1'].length).toBeLessThan(500);
+  });
+
+  it('keeps the version 1 sample equal to the bench example', async () => {
+    expect(await decodeSceneLink(sampleLinks['1'])).toEqual(examples.bench);
   });
 });
