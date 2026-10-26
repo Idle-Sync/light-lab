@@ -1,4 +1,5 @@
 import type { SceneObject } from '@light-lab/engine';
+import type { Store } from '../store';
 
 export type KeyEdit = Partial<Pick<SceneObject, 'x' | 'y' | 'angle'>>;
 
@@ -28,4 +29,28 @@ export function keyToSceneEdit(
     default:
       return null;
   }
+}
+
+export interface KeyPress {
+  key: string;
+  shiftKey: boolean;
+  metaKey: boolean;
+  ctrlKey: boolean;
+  altKey: boolean;
+}
+
+/**
+ * Moves or turns the selected object for one key press, one history entry per press. Returns
+ * whether the press was used, so the caller can stop the browser's default for it.
+ */
+export function applyKeyEdit(store: Store, press: KeyPress): boolean {
+  // Meta+[ is browser Back and Ctrl+arrows move between spaces or words; they are not edits.
+  if (press.metaKey || press.ctrlKey || press.altKey) return false;
+  const { scene, selectedId } = store.getState();
+  const selected = scene.objects.find((object) => object.id === selectedId);
+  if (!selected) return false;
+  const edit = keyToSceneEdit(press.key, press.shiftKey, selected);
+  if (!edit) return false;
+  store.updateObject(selected.id, edit);
+  return true;
 }

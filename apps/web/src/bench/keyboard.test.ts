@@ -1,7 +1,7 @@
 import { examples, type SceneObject } from '@light-lab/engine';
 import { describe, expect, it } from 'vitest';
 import { createStore } from '../store';
-import { keyToSceneEdit } from './keyboard';
+import { applyKeyEdit, keyToSceneEdit } from './keyboard';
 
 const lens: SceneObject = {
   kind: 'lens',
@@ -40,14 +40,16 @@ describe('keyToSceneEdit', () => {
       expect(keyToSceneEdit(key, false, lens)).toBeNull();
     }
   });
+});
+
+describe('applyKeyEdit', () => {
+  const plain = { shiftKey: false, metaKey: false, ctrlKey: false, altKey: false };
 
   it('makes one history entry per key press', () => {
     const store = createStore(examples.bench);
+    store.select(2);
     for (let press = 0; press < 10; press += 1) {
-      const object = store.getState().scene.objects[1];
-      const patch = keyToSceneEdit('ArrowRight', false, object);
-      if (!patch) throw new Error('ArrowRight should nudge');
-      store.updateObject(object.id, patch);
+      expect(applyKeyEdit(store, { ...plain, key: 'ArrowRight' })).toBe(true);
     }
     expect(store.getState().scene.objects[1]).toMatchObject({ x: -110 });
     let undoSteps = 0;
@@ -56,5 +58,21 @@ describe('keyToSceneEdit', () => {
       undoSteps += 1;
     }
     expect(undoSteps).toBe(10);
+  });
+
+  it('leaves keys with Meta, Control or Alt to the browser and the shortcuts', () => {
+    const store = createStore(examples.bench);
+    store.select(2);
+    expect(applyKeyEdit(store, { ...plain, key: '[', metaKey: true })).toBe(false);
+    expect(applyKeyEdit(store, { ...plain, key: 'ArrowRight', ctrlKey: true })).toBe(false);
+    expect(applyKeyEdit(store, { ...plain, key: 'ArrowLeft', altKey: true })).toBe(false);
+    expect(store.getState().scene).toEqual(examples.bench);
+    expect(store.canUndo()).toBe(false);
+  });
+
+  it('edits nothing when no object is selected', () => {
+    const store = createStore(examples.bench);
+    expect(applyKeyEdit(store, { ...plain, key: 'ArrowRight' })).toBe(false);
+    expect(store.canUndo()).toBe(false);
   });
 });

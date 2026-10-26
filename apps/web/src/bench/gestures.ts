@@ -39,6 +39,8 @@ const snapWindow = 2.5;
 // A mouse wheel notch is about 100 units; a trackpad pinch sends a few units per event.
 const zoomPerWheelUnit = 0.0015;
 const zoomPerPinchUnit = 0.01;
+// Two pointers closer than this at the start give no usable ratio for the zoom.
+const shortestPinchStart = 1;
 
 /** The shortest signed difference between two angles in radians, in (-π, π]. */
 function angleDifference(a: number, b: number): number {
@@ -140,11 +142,16 @@ export function createGestures(store: Store, getCanvasBox: () => CanvasBox) {
   }
 
   function startPinch(first: Point, second: Point): void {
+    const startDistance = Math.hypot(second.x - first.x, second.y - first.y);
+    if (startDistance < shortestPinchStart) {
+      gesture = { mode: 'none' };
+      return;
+    }
     const midpoint = { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 };
     const { view } = store.getState();
     gesture = {
       mode: 'pinch',
-      startDistance: Math.hypot(second.x - first.x, second.y - first.y),
+      startDistance,
       startMidpointOnBench: screenToBench(midpoint, view, canvasSize()),
       startScale: view.scale,
     };
@@ -226,8 +233,11 @@ export function createGestures(store: Store, getCanvasBox: () => CanvasBox) {
         return;
       }
       if (gesture.mode === 'move') {
+        const id = gesture.id;
+        // An undo or delete during the drag can remove the object; a patch would then still commit.
+        if (!store.getState().scene.objects.some((object) => object.id === id)) return;
         const patch = { x: bench.x + gesture.grabOffset.x, y: bench.y + gesture.grabOffset.y };
-        store.updateObject(gesture.id, patch, { continuesEdit: true });
+        store.updateObject(id, patch, { continuesEdit: true });
         return;
       }
       if (gesture.mode === 'rotate') {
