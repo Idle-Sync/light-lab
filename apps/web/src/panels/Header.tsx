@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { store, useAppState } from '../store';
 import { exampleLinks } from './examples';
 import { sceneFromFileText, sceneToFileText } from './file';
-import { shareSceneLink } from './share';
+import { copyWithClipboard, shareSceneLink } from './share';
 
 const copiedMessageMilliseconds = 2000;
 
@@ -49,11 +49,7 @@ export function Header() {
   async function share(): Promise<void> {
     const baseUrl = `${location.origin}${location.pathname}`;
     setManualLink(null);
-    const shared = await shareSceneLink(
-      store.getState().scene,
-      (text) => navigator.clipboard.writeText(text),
-      baseUrl,
-    );
+    const shared = await shareSceneLink(store.getState().scene, copyWithClipboard, baseUrl);
     if (!shared.copied) {
       setManualLink(shared.link);
       return;
