@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-darkroom: #000000;
+  --color-bench: #191c22;
+  --color-rule: #2c313b;
+  --color-chalk: #e6e8ec;
+  --color-graphite: #a3aab6;
+  --color-sodium: #ffb547;
+  --font-sans: "Instrument Sans Variable", system-ui, sans-serif;
+
+  /* The names shadcn components use, pointed at the look tokens above. */
+  --color-background: var(--color-darkroom);
+  --color-foreground: var(--color-chalk);
+  --color-primary: var(--color-sodium);
+  --color-primary-foreground: var(--color-darkroom);
+  --color-secondary: var(--color-rule);
+  --color-secondary-foreground: var(--color-chalk);
+  --color-accent: var(--color-rule);
+  --color-accent-foreground: var(--color-chalk);
+  --color-muted: var(--color-rule);
+  --color-muted-foreground: var(--color-graphite);
+  --color-border: var(--color-rule);
+  --color-input: var(--color-rule);
+  --color-ring: var(--color-sodium);
+}
+
+body {
+  margin: 0;
+  background: var(--color-darkroom);
+  color: var(--color-chalk);
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
