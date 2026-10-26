@@ -1,3 +1,4 @@
+import { deflateRawSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { examples } from './examples';
 import { decodeSceneLink, encodeSceneLink } from './links';
@@ -34,5 +35,19 @@ describe('scene links', () => {
 
   it('rejects a link without a known prefix', async () => {
     await expect(decodeSceneLink('q.abc')).rejects.toBeInstanceOf(SceneError);
+  });
+
+  // A few kilobytes of deflate can expand to gigabytes; decoding must stop at the limit.
+  it('rejects a compressed link that inflates past 1 MB', async () => {
+    const twoMegabytes = Buffer.alloc(2 * 1024 * 1024, ' ');
+    const link = `z.${deflateRawSync(twoMegabytes).toString('base64url')}`;
+    expect(link.length).toBeLessThan(64 * 1024);
+    await expect(decodeSceneLink(link)).rejects.toThrowError(SceneError);
+    await expect(decodeSceneLink(link)).rejects.toThrowError(/1048576-byte limit/);
+  });
+
+  it('rejects a link longer than 64 KB before decoding it', async () => {
+    const link = `j.${'A'.repeat(64 * 1024)}`;
+    await expect(decodeSceneLink(link)).rejects.toThrowError(/65536-character limit/);
   });
 });
