@@ -1,11 +1,11 @@
 import {
+  analyzeEye,
   type EyeAnalysis,
   type EyeGroup,
   type EyeRow,
   examples,
   type RayBucket,
   type Scene,
-  type SceneObject,
 } from '@light-lab/engine';
 import { describe, expect, it } from 'vitest';
 import type { SceneResults } from '../engine-worker';
@@ -17,8 +17,8 @@ import {
   drawRays,
   formatPercent,
 } from './draw';
-import { spotAlpha, spotRadius, stripX } from './eye-strip';
-import { toBench } from './shapes';
+import { faintestShownPower, spotAlpha, spotRadius, stripX } from './eye-strip';
+import { degrees, radians } from './shapes';
 
 interface StrokedPath {
   points: Array<[number, number]>;
@@ -197,8 +197,8 @@ describe('drawImageMarkers', () => {
     path: 'tt',
     kind: 'virtual',
     image: [10, 0],
-    low: -3,
-    high: 3,
+    low: [100, 3],
+    high: [100, -3],
     pointIndex: 0,
     power: 0.05,
   });
@@ -206,42 +206,32 @@ describe('drawImageMarkers', () => {
     path: 'tt',
     kind: 'virtual',
     image: [10, 20],
-    low: -2,
-    high: 2,
+    low: [100, 2],
+    high: [100, -2],
     pointIndex: 1,
     power: 0.05,
   });
   const realNear = eyeGroup({ path: 'ttm', kind: 'real', image: [-30, 0], pointIndex: 0 });
   const realFar = eyeGroup({ path: 'ttm', kind: 'real', image: [-30, 15], pointIndex: 1 });
   const analysis = analysisOf([virtualNear, virtualFar, realNear, realFar]);
-  const eye = {
-    kind: 'eye',
-    id: 9,
-    x: 100,
-    y: 0,
-    angle: 180,
-    pupil: 8,
-    fieldOfView: 70,
-  } satisfies SceneObject;
 
   it('draws a virtual image chain dashed', () => {
     const context = new RecordingContext();
-    drawImageMarkers(context, analysis, eye, 0.5);
+    drawImageMarkers(context, analysis, 0.5);
     const chain = strokeThrough(context, [10, 0], [10, 20]);
     expect(chain?.dash.length).toBeGreaterThan(0);
   });
 
   it('draws the traced-back rays of a virtual image dashed', () => {
     const context = new RecordingContext();
-    drawImageMarkers(context, analysis, eye, 0.5);
-    const lowEntry = toBench(eye, 0, -3);
-    const backTrace = strokeThrough(context, [lowEntry.x, lowEntry.y], [10, 0]);
+    drawImageMarkers(context, analysis, 0.5);
+    const backTrace = strokeThrough(context, [100, 3], [10, 0]);
     expect(backTrace?.dash.length).toBeGreaterThan(0);
   });
 
   it('draws a real image chain solid', () => {
     const context = new RecordingContext();
-    drawImageMarkers(context, analysis, eye, 0.5);
+    drawImageMarkers(context, analysis, 0.5);
     const chain = strokeThrough(context, [-30, 0], [-30, 15]);
     expect(chain).toBeDefined();
     expect(chain?.dash).toEqual([]);
@@ -250,7 +240,7 @@ describe('drawImageMarkers', () => {
   it('skips groups with no image point or one at infinity', () => {
     const context = new RecordingContext();
     const atInfinity = eyeGroup({ kind: 'infinity', image: null });
-    drawImageMarkers(context, analysisOf([atInfinity]), eye, 0.5);
+    drawImageMarkers(context, analysisOf([atInfinity]), 0.5);
     expect(context.strokes).toEqual([]);
   });
 });
@@ -260,7 +250,7 @@ describe('drawEyeStrip', () => {
 
   it('places each visible group by its angle', () => {
     const context = new RecordingContext();
-    const group = eyeGroup({ angle: 10 });
+    const group = eyeGroup({ angle: radians(10) });
     drawEyeStrip(context, analysisOf([group]), 70, rect);
     expect(context.spots).toHaveLength(1);
     expect(context.spots[0].x).toBeCloseTo(rect.x + stripX(10, 70, rect.width), 9);
@@ -268,7 +258,7 @@ describe('drawEyeStrip', () => {
 
   it('uses a fixed exposure: a spot keeps its size and brightness whatever else is in view', () => {
     const faint = eyeGroup({ power: 0.01, path: 't' });
-    const bright = eyeGroup({ power: 0.5, path: 'tt', angle: 20 });
+    const bright = eyeGroup({ power: 0.5, path: 'tt', angle: radians(20) });
     const alone = new RecordingContext();
     drawEyeStrip(alone, analysisOf([faint]), 70, rect);
     const withBright = new RecordingContext();
@@ -289,7 +279,7 @@ describe('drawEyeStrip', () => {
 
   it('labels each visible path with the share of light it keeps', () => {
     const context = new RecordingContext();
-    const top = eyeGroup({ angle: -10 });
+    const top = eyeGroup({ angle: radians(-10) });
     drawEyeStrip(context, analysisOf([top], [eyeRow(top, 0.917)]), 70, rect);
     const label = context.texts.find((text) => text.text === '91.7 %');
     expect(label?.x).toBeCloseTo(rect.x + stripX(-10, 70, rect.width), 9);
@@ -301,6 +291,49 @@ describe('drawEyeStrip', () => {
     expect(context.texts.map((text) => text.text)).toEqual([
       'No light reaches the pupil. Aim the eye at the optics.',
     ]);
+  });
+});
+
+function eyeOf(scene: Scene) {
+  const eye = scene.objects.find((object) => object.kind === 'eye');
+  if (eye?.kind !== 'eye') throw new Error('the example has no eye');
+  return eye;
+}
+
+describe('eye drawing fed by the engine', () => {
+  const rect = { x: 100, y: 500, width: 400, height: 60 };
+
+  it('places every ball spot at the strip position of its angle in degrees', () => {
+    const eye = eyeOf(examples.ball);
+    const analysis = analyzeEye(examples.ball, eye.id);
+    const context = new RecordingContext();
+    drawEyeStrip(context, analysis, eye.fieldOfView, rect);
+
+    const expected = analysis.groups
+      .filter((group) => group.visible && group.power >= faintestShownPower)
+      .map((group) => rect.x + stripX(degrees(group.angle), eye.fieldOfView, rect.width));
+    expect(expected.length).toBeGreaterThan(0);
+    expect(context.spots.map((spot) => spot.x)).toEqual(expected);
+  });
+
+  it('starts the magnifier back-traced lines at the pupil points low and high', () => {
+    const eye = eyeOf(examples.magnifier);
+    const analysis = analyzeEye(examples.magnifier, eye.id);
+    const context = new RecordingContext();
+    drawImageMarkers(context, analysis, 0.5);
+
+    const virtual = analysis.groups.filter(
+      (group) => group.kind === 'virtual' && group.image && group.low && group.high,
+    );
+    expect(virtual.length).toBeGreaterThan(0);
+    for (const group of virtual.slice(0, 5)) {
+      if (!group.image || !group.low || !group.high) continue;
+      for (const entry of [group.low, group.high]) {
+        expect(Math.hypot(entry[0] - eye.x, entry[1] - eye.y)).toBeLessThanOrEqual(eye.pupil / 2);
+        const line = strokeThrough(context, entry, group.image);
+        expect(line?.dash.length).toBeGreaterThan(0);
+      }
+    }
   });
 });
 
@@ -370,7 +403,12 @@ describe('drawBench', () => {
 
   it('draws every kind of object with readouts and an eye strip', () => {
     const context = new RecordingContext();
-    const top = eyeGroup({ kind: 'virtual', image: [150, 0], low: -2, high: 2 });
+    const top = eyeGroup({
+      kind: 'virtual',
+      image: [150, 0],
+      low: [200, 2],
+      high: [200, -2],
+    });
     const eye = { ...analysisOf([top], [eyeRow(top, 0.5)]), eyeId: 15 };
     drawBench(context, {
       scene: everyKind,

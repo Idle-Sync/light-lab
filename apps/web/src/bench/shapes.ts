@@ -9,6 +9,10 @@ export function radians(degrees: number): number {
   return (degrees * Math.PI) / 180;
 }
 
+export function degrees(radians: number): number {
+  return (radians * 180) / Math.PI;
+}
+
 /** The bench point at `along`, `across` mm in the object's own axes (along = its angle). */
 export function toBench(object: SceneObject, along: number, across: number): Point {
   const cos = Math.cos(radians(object.angle));

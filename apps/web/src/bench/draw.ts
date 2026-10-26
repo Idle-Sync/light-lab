@@ -14,6 +14,7 @@ import { analyzedEyeId, type View } from '../store';
 import { faintestShownPower, spotAlpha, spotRadius, stripX } from './eye-strip';
 import {
   arcMirrorShapeOf,
+  degrees,
   extentOf,
   lensShapeOf,
   prismCornersOf,
@@ -162,10 +163,7 @@ export function drawBench(context: BenchContext, frame: BenchFrame): void {
   for (const object of scene.objects) {
     drawObject(context, object, pixel, object.id === frame.selectedId, detectors[object.id]);
   }
-  const analysedEye = scene.objects.find((object) => object.id === eyeAnalysis?.eyeId);
-  if (eyeAnalysis && analysedEye?.kind === 'eye') {
-    drawImageMarkers(context, eyeAnalysis, analysedEye, pixel);
-  }
+  if (eyeAnalysis) drawImageMarkers(context, eyeAnalysis, pixel);
   context.restore();
 
   drawLabels(context, frame, eyeAnalysis);
@@ -567,14 +565,13 @@ function chainKey(group: EyeGroup): string {
 
 /**
  * Marks where the eye sees each image, in bench coordinates. Virtual images get dashed lines
- * traced back from the outermost rays at the pupil (`low` and `high`, mm across the eye's
- * axis); images of the points of one source along one path are joined, dashed when virtual
- * and solid when real.
+ * traced back from where the outermost rays cross the pupil (`low` and `high`, bench points);
+ * images of the points of one source along one path are joined, dashed when virtual and solid
+ * when real.
  */
 export function drawImageMarkers(
   context: BenchContext,
   analysis: EyeAnalysis,
-  eye: Extract<SceneObject, { kind: 'eye' }>,
   pixel: number,
 ): void {
   const strongest = strongestGroupPower(analysis);
@@ -587,15 +584,13 @@ export function drawImageMarkers(
     shown += 1;
     const color = wavelengthColor(group.nm);
     if (group.kind === 'virtual' && group.low !== null && group.high !== null) {
-      const lowEntry = toBench(eye, 0, group.low);
-      const highEntry = toBench(eye, 0, group.high);
       context.setLineDash([4 * pixel, 4 * pixel]);
       context.strokeStyle = rgba(color, 0.4);
       context.lineWidth = pixel;
       context.beginPath();
-      context.moveTo(lowEntry.x, lowEntry.y);
+      context.moveTo(group.low[0], group.low[1]);
       context.lineTo(image[0], image[1]);
-      context.moveTo(highEntry.x, highEntry.y);
+      context.moveTo(group.high[0], group.high[1]);
       context.lineTo(image[0], image[1]);
       context.stroke();
       context.setLineDash([]);
@@ -847,7 +842,8 @@ export function drawEyeStrip(
     return;
   }
 
-  const xOf = (angle: number) => strip.x + stripX(angle, fieldOfView, strip.width);
+  // Group angles are radians; the strip scale, like the field of view, is in degrees.
+  const xOf = (angle: number) => strip.x + stripX(degrees(angle), fieldOfView, strip.width);
   const chains = new Map<string, EyeGroup[]>();
   context.globalCompositeOperation = 'lighter';
   for (const group of analysis.groups) {
