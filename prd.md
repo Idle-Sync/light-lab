@@ -73,9 +73,11 @@ Ray bench (milestone 1)
   runs in a Web Worker; a spatial index cuts ray hit tests — done when: a Chrome performance
   trace at 4x CPU throttling shows no retrace during pan or zoom and pan and zoom frames stay
   under 16 ms; at the same throttling the bench example traces in under 20 ms, the same scene
-  with 600 drawn rays in under 60 ms, and the ball and magnifier eye analyses in under 60 ms
-  (the prototype does these in 0.9 ms, 6.6 ms and 12 ms unthrottled in Node); the check is a
-  repeatable test, not a one-off measurement.
+  with 600 drawn rays in under 60 ms, and the ball and magnifier eye analyses in under 100 ms
+  (the prototype does these in 0.9 ms, 6.6 ms and 12 ms unthrottled in Node); the eye pass
+  runs in the worker and never blocks the page; Chromium throttles only the page thread, so
+  worker timings are scaled by the throttling rate; the check is a repeatable test, not a
+  one-off measurement.
 - Eye path analysis with fixed exposure: dense emission per source, rays grouped by source,
   point, wavelength and surface path, least-squares image point per group classed as real,
   virtual, at infinity or behind the eye; inspector shows the path in words, the share of
