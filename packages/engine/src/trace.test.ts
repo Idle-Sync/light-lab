@@ -101,23 +101,41 @@ describe('detector power', () => {
     expect(Math.abs(fewRays - manyRays) / manyRays).toBeLessThan(0.01);
   });
 
+  const object: SceneObject = {
+    kind: 'object',
+    id: 1,
+    x: 0,
+    y: 10,
+    angle: 0,
+    height: 20,
+    cone: 50,
+    rays: 9,
+    spectrum: 'white',
+  };
+  const wall: SceneObject = { kind: 'detector', id: 2, x: 20, y: 0, angle: 90, length: 200 };
+
   it('never exceeds 1 for an extended object, whose power is shared by its emitting points', () => {
-    const object: SceneObject = {
-      kind: 'object',
-      id: 1,
-      x: 0,
-      y: 10,
-      angle: 0,
-      height: 20,
-      cone: 50,
-      rays: 9,
-      spectrum: 'white',
-    };
-    const wall: SceneObject = { kind: 'detector', id: 2, x: 20, y: 0, angle: 90, length: 200 };
     const power = detectorPower(parseScene({ v: 1, objects: [object, wall] }), 2);
     expect(power).toBeGreaterThan(0.99);
     // Summing equal shares can round one unit in the last place above 1.
     expect(power).toBeLessThanOrEqual(1 + 1e-12);
+  });
+
+  it('never exceeds 1 for a sensor close to an extended object with the 3D equivalent on', () => {
+    const scene = parseScene({ v: 1, settings: { brightness: '3d' }, objects: [object, wall] });
+    expect(detectorPower(scene, 2)).toBeLessThanOrEqual(1);
+  });
+
+  it('never exceeds 1 for a sensor wider than its distance from a point source in 3D', () => {
+    const scene = parseScene({
+      v: 1,
+      settings: { brightness: '3d' },
+      objects: [
+        { kind: 'point', id: 1, x: 0, y: 0, angle: 0, cone: 60, rays: 101, spectrum: 587.56 },
+        { kind: 'detector', id: 2, x: 5, y: 0, angle: 90, length: 40 },
+      ],
+    });
+    expect(detectorPower(scene, 2)).toBeLessThanOrEqual(1);
   });
 });
 

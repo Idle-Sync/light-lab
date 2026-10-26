@@ -32,7 +32,10 @@ describe('detectorReadout', () => {
 
   it('names the 3D rule from the engine when brightness is 3d', () => {
     const result = detectorReadout({ power: 0.25 }, '3d');
-    expect(result.assumes).toContain('length / (2 · path length travelled)');
+    expect(result.assumes).toContain(
+      'share a square sensor of that side catches in 3D over the share the line catches in 2D',
+    );
+    expect(result.assumes).not.toContain('length / (2');
     expect(result.assumes).toContain('exact for free-space spreading from a point source');
     expect(result.assumes).toContain('approximate after lenses or mirrors');
   });
