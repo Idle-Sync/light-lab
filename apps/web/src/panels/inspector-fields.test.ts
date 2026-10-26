@@ -1,4 +1,4 @@
-import { examples } from '@light-lab/engine';
+import { examples, type Material } from '@light-lab/engine';
 import { describe, expect, it } from 'vitest';
 import { createStore, type Store } from '../store';
 import { physicalPatch, pickChip, sliderInput } from './inspector-fields';
@@ -61,14 +61,16 @@ describe('pickChip', () => {
     const store = createStore(examples.bench);
     store.updateObject(2, { radius1: 80 });
     store.undo();
-    pickChip(true, 'bk7', (value) => store.updateObject(2, { material: value as 'bk7' }));
+    const alreadyOn: Material = 'bk7';
+    pickChip(true, alreadyOn, (material) => store.updateObject(2, { material }));
     expect(store.canUndo()).toBe(false);
     expect(store.canRedo()).toBe(true);
   });
 
   it('picks an option that is off', () => {
     const store = createStore(examples.bench);
-    pickChip(false, 'sf11', (value) => store.updateObject(2, { material: value as 'sf11' }));
+    const off: Material = 'sf11';
+    pickChip(false, off, (material) => store.updateObject(2, { material }));
     expect(store.getState().scene.objects[1]).toMatchObject({ material: 'sf11' });
     expect(countUndoSteps(store)).toBe(1);
   });
