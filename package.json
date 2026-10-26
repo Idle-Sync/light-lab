@@ -1,0 +1,25 @@
+{
+  "name": "light-lab",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-only",
+  "packageManager": "pnpm@12.15.0",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.15.0",
+      "onFail": "error"
+    }
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "test": "pnpm -r test",
+    "check": "biome ci . && pnpm -r check"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.3"
+  }
+}
