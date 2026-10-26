@@ -114,6 +114,17 @@ describe('pan and zoom', () => {
     expect(underMidpoint.y).toBeCloseTo(grabbed.y, 9);
   });
 
+  it('ignores a pinch whose two pointers start on one point, keeping the view finite', () => {
+    const { store, gestures } = setup();
+    gestures.pointerDown(pointer(1, 300, 200));
+    gestures.pointerDown(pointer(2, 300, 200));
+    gestures.pointerMove(pointer(1, 300, 200));
+    const { view } = store.getState();
+    expect(Number.isFinite(view.scale)).toBe(true);
+    expect(Number.isFinite(view.offsetX)).toBe(true);
+    expect(Number.isFinite(view.offsetY)).toBe(true);
+  });
+
   it('deselects when pressing empty space', () => {
     const { store, gestures } = setup();
     store.select(2);
@@ -165,6 +176,18 @@ describe('dragging an object', () => {
     store.undo();
     expect(store.getState().scene).toEqual(examples.bench);
     expect(store.canUndo()).toBe(false);
+  });
+
+  it('adds no history entry when the dragged object is removed mid-drag', () => {
+    const { store, gestures } = setup();
+    const source = clientPointOf(store, -220, -70);
+    gestures.pointerDown(pointer(1, source.clientX, source.clientY));
+    store.removeObject(1);
+    const sceneAfterRemoval = store.getState().scene;
+    gestures.pointerMove(pointer(1, source.clientX + 10, source.clientY));
+    expect(store.getState().scene).toBe(sceneAfterRemoval);
+    store.undo();
+    expect(store.getState().scene).toEqual(examples.bench);
   });
 
   it('finishes the drag when a second pointer starts a pinch', () => {

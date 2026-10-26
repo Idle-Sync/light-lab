@@ -17,9 +17,12 @@
   "scripts": {
     "dev": "pnpm --filter web dev",
     "test": "pnpm -r test",
-    "check": "biome ci . && pnpm -r check"
+    "check": "biome ci . && pnpm -r check",
+    "e2e": "playwright test"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.3"
+    "@axe-core/playwright": "^4.14.0",
+    "@biomejs/biome": "^2.6.3",
+    "@playwright/test": "^1.64.1"
   }
 }

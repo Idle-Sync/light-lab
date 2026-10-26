@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { store, useAppState } from '../store';
 import { exampleLinks } from './examples';
 import { sceneFromFileText, sceneToFileText } from './file';
-import { shareSceneLink } from './share';
+import { copyWithClipboard, shareSceneLink } from './share';
 
 const copiedMessageMilliseconds = 2000;
 
@@ -36,26 +36,28 @@ export function Header() {
   const canUndo = useAppState(() => store.canUndo());
   const canRedo = useAppState(() => store.canRedo());
 
+  const copiedTimer = useRef<number | undefined>(undefined);
+
   useEffect(() => {
-    exampleLinks().then(setLinks);
+    exampleLinks()
+      .then(setLinks)
+      .catch((error: unknown) => {
+        store.setLinkError(`The example links could not be built: ${String(error)}`);
+      });
   }, []);
 
   async function share(): Promise<void> {
     const baseUrl = `${location.origin}${location.pathname}`;
     setManualLink(null);
-    try {
-      await shareSceneLink(
-        store.getState().scene,
-        (text) => navigator.clipboard.writeText(text),
-        baseUrl,
-      );
-    } catch {
-      // Clipboard access can be denied or missing; the link is still shown for copying by hand.
-      setManualLink(await shareSceneLink(store.getState().scene, async () => {}, baseUrl));
+    const shared = await shareSceneLink(store.getState().scene, copyWithClipboard, baseUrl);
+    if (!shared.copied) {
+      setManualLink(shared.link);
       return;
     }
     setCopied(true);
-    setTimeout(() => setCopied(false), copiedMessageMilliseconds);
+    // A second Share restarts the message instead of letting the first timer hide it early.
+    window.clearTimeout(copiedTimer.current);
+    copiedTimer.current = window.setTimeout(() => setCopied(false), copiedMessageMilliseconds);
   }
 
   return (
@@ -101,7 +103,8 @@ export function Header() {
         </Button>
       </div>
 
-      {copied && <span role="status">Link copied</span>}
+      {/* Kept in the DOM so screen readers announce the text when it appears. */}
+      <span role="status">{copied ? 'Link copied' : ''}</span>
       {manualLink !== null && (
         <label className="flex items-center gap-2">
           <span>Copy this link</span>

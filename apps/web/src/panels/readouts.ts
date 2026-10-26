@@ -45,7 +45,7 @@ export function lensLabel(theory: number, measured: number | null): Readout {
 
 const rule2d = 'Brightness in 2D: light spreads as 1/r, not 1/r² as in a 3D world.';
 const rule3d =
-  'Brightness in 3D equivalent: each hit is weighted by sensor length / (2 · path length travelled), as for a square sensor of that side. The rule is exact for free-space spreading from a point source and approximate after lenses or mirrors, because a 2D scene does not know the 3D focusing.';
+  'Brightness in 3D equivalent: each hit is weighted by the share a square sensor of that side catches in 3D over the share the line catches in 2D, at the path length travelled, so it never exceeds 1. The rule is exact for free-space spreading from a point source and approximate after lenses or mirrors, because a 2D scene does not know the 3D focusing.';
 
 export function detectorReadout(
   reading: { power: number } | undefined,

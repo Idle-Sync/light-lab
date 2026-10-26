@@ -396,9 +396,7 @@ function addDetectorHit(
   brightness: Settings['brightness'],
 ): void {
   let power = ray.weight * ray.intensity;
-  // A square sensor of side `length` at distance r catches length²/r² of 4π where the 2D line
-  // catches length/r of 2π; exact for free-space spreading from a point source.
-  if (brightness === '3d') power *= tally.length / (2 * (ray.travelled + hit.t));
+  if (brightness === '3d') power *= squareToLineShare(tally.length, ray.travelled + hit.t);
   const position = (hit.u - 0.5) * tally.length;
   const bin = Math.min(detectorBins - 1, Math.floor(hit.u * detectorBins));
   const [red, green, blue] = wavelengthColor(ray.nm);
@@ -411,6 +409,17 @@ function addDetectorHit(
   reading.bins.red[bin] += power * red;
   reading.bins.green[bin] += power * green;
   reading.bins.blue[bin] += power * blue;
+}
+
+/**
+ * The share of a point source's light a square sensor of side `length` at `distance` catches in
+ * 3D, divided by the share a line sensor of that length catches in 2D. With a = length / (2r)
+ * the square subtends 4 asin(a² / (1 + a²)) of 4π and the line 2 atan(a) of 2π. The ratio is
+ * about a far away and never exceeds 1, so a near sensor cannot read more than the source emits.
+ */
+function squareToLineShare(length: number, distance: number): number {
+  const a = length / (2 * distance);
+  return Math.asin((a * a) / (1 + a * a)) / Math.atan(a);
 }
 
 function finishedReading(tally: DetectorTally): DetectorReading {

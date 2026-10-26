@@ -4,7 +4,7 @@ import { store } from '../store';
 import { setCanvasStatus } from './canvas-status';
 import { drawBench } from './draw';
 import { createGestures } from './gestures';
-import { keyToSceneEdit } from './keyboard';
+import { applyKeyEdit } from './keyboard';
 import { fitView } from './view';
 
 function context2dOf(sketch: p5): CanvasRenderingContext2D {
@@ -15,15 +15,8 @@ function context2dOf(sketch: p5): CanvasRenderingContext2D {
   return context;
 }
 
-/** Moves or turns the selected object with the arrow and bracket keys, one history entry per press. */
 function handleKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
-  const { scene, selectedId } = store.getState();
-  const selected = scene.objects.find((object) => object.id === selectedId);
-  if (!selected) return;
-  const edit = keyToSceneEdit(event.key, event.shiftKey, selected);
-  if (!edit) return;
-  event.preventDefault();
-  store.updateObject(selected.id, edit);
+  if (applyKeyEdit(store, event)) event.preventDefault();
 }
 
 /**

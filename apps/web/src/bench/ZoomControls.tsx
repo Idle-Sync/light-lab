@@ -17,7 +17,7 @@ function fitBench(): void {
 
 export function ZoomControls() {
   return (
-    <div className="absolute bottom-4 left-[88px] flex items-center gap-3">
+    <div className="absolute bottom-4 left-[88px] flex items-center gap-3 max-[760px]:bottom-3 max-[760px]:left-3">
       <fieldset
         aria-label="Zoom"
         className="m-0 flex min-w-0 rounded-xl border border-rule bg-bench/90 p-[3px]"

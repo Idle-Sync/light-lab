@@ -6,16 +6,18 @@ import {
   type SceneObject,
   type Settings,
 } from '@light-lab/engine';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { SceneResults } from '../engine-worker';
 import { store, useAppState } from '../store';
+import { keptEyeRows } from './eye-rows';
 import {
   type ChoiceField,
   type Field,
   kindFields,
   kindTitles,
-  physicalPatch,
+  pickChip,
   type SliderField,
+  sliderInput,
   subtitleOf,
 } from './inspector-fields';
 import { objectReadouts } from './object-readouts';
@@ -44,7 +46,7 @@ function Chips(props: {
               type="button"
               aria-pressed={on}
               className={`${chipClass} ${on ? chipOnClass : chipOffClass}`}
-              onClick={() => props.onPick(option.value)}
+              onClick={() => pickChip(on, option.value, props.onPick)}
             >
               {option.label}
             </button>
@@ -59,6 +61,13 @@ function SliderRow(props: { object: SceneObject; field: SliderField }) {
   const { object, field } = props;
   const inputId = `inspector-${object.id}-${field.key}`;
   const value = (object as Record<string, unknown>)[field.key] as number;
+  const pointerHeld = useRef(false);
+
+  function releaseThumb(): void {
+    pointerHeld.current = false;
+    store.finishEdit();
+  }
+
   return (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between">
@@ -78,13 +87,17 @@ function SliderRow(props: { object: SceneObject; field: SliderField }) {
         step={field.step}
         value={value}
         className="w-full accent-sodium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sodium"
+        onPointerDown={(event) => {
+          pointerHeld.current = true;
+          // Keeps pointerup on this input when the drag ends outside it.
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerUp={releaseThumb}
+        onPointerCancel={releaseThumb}
         onChange={(event) =>
-          store.updateObject(
-            object.id,
-            physicalPatch(object, {
-              [field.key]: Number(event.target.value),
-            } as Partial<SceneObject>),
-          )
+          sliderInput(store, object.id, field.key, Number(event.target.value), {
+            pointerHeld: pointerHeld.current,
+          })
         }
       />
     </div>
@@ -147,8 +160,7 @@ function eyeReadouts(
   if (!analysis || analysis.eyeId !== eyeId || analysis.rows.length === 0) {
     return { readouts: [{ label: 'Light into the pupil', value: 'None', assumes }], rows: [] };
   }
-  const strongest = analysis.rows[0].power;
-  const kept = analysis.rows.filter((row) => row.power >= strongest * 1e-4);
+  const kept = keptEyeRows(analysis);
   return {
     readouts: [
       {
@@ -163,6 +175,7 @@ function eyeReadouts(
 }
 
 interface EyeRowView {
+  key: string;
   label: string;
   transmission: string;
   color: string;
@@ -183,6 +196,8 @@ function eyeRowView(row: EyeRow): EyeRowView {
   const scale = 255 / Math.max(...row.color, 1e-12);
   const [red, green, blue] = row.color.map((channel) => Math.round(channel * scale));
   return {
+    // Two sources can share a path, so the path alone does not identify a row.
+    key: `${top.sourceId}|${row.path}`,
     label: pathLabel(row.path),
     transmission: percent(row.transmission),
     color: `rgb(${red}, ${green}, ${blue})`,
@@ -208,6 +223,9 @@ function ObjectPanel(props: { object: SceneObject; scene: Scene; results: SceneR
       <div>
         <h2 className="m-0 text-[17px] font-semibold tracking-tight">{kindTitles[object.kind]}</h2>
         <p className="m-0 text-graphite">{subtitleOf(object)}</p>
+        <p className="m-0 text-graphite tabular-nums">
+          x {object.x} mm, y {object.y} mm
+        </p>
       </div>
       {warning && (
         <p role="status" className="m-0 text-sodium">
@@ -221,7 +239,7 @@ function ObjectPanel(props: { object: SceneObject; scene: Scene; results: SceneR
       {eye && eye.rows.length > 0 && (
         <ul aria-label="Light paths" className="m-0 flex list-none flex-col gap-2 p-0">
           {eye.rows.map((row) => (
-            <li key={row.label} className="flex gap-2">
+            <li key={row.key} className="flex gap-2">
               <span
                 aria-hidden="true"
                 className="mt-1 size-3 shrink-0 rounded-full"
@@ -310,7 +328,7 @@ export function Inspector() {
   return (
     <aside
       aria-label="Inspector"
-      className="absolute top-4 right-4 flex max-h-[calc(100%-2rem)] w-[300px] flex-col gap-3 overflow-y-auto rounded-[14px] border border-rule bg-bench/90 p-4"
+      className="absolute top-4 right-4 flex max-h-[calc(100%-2rem)] w-[300px] flex-col gap-3 overflow-y-auto rounded-[14px] border border-rule bg-bench/90 p-4 max-[760px]:top-auto max-[760px]:right-3 max-[760px]:bottom-[136px] max-[760px]:left-3 max-[760px]:max-h-[42%] max-[760px]:w-auto"
     >
       {object ? (
         <ObjectPanel object={object} scene={scene} results={results} />
