@@ -1,6 +1,8 @@
 # Handoff 01 — start of the next session
 
-Milestone 1 (the ray bench) is merged on local `master` and green. It is not pushed, not deployed and not tagged yet.
+Milestone 1 (the ray bench) is merged and pushed to `Idle-Sync/light-lab` `master`. It is not deployed and not tagged.
+
+CI is red on its first run (run 40334623127): the `check` job passes; the `e2e` job passes 17 of 18. The failure is `apps/web/e2e/perf.spec.ts:98`, the magnifier eye analysis at 4x throttling: 201.6 ms scaled on the GitHub runner against the 100 ms budget (about 80 ms on an Apple M-series machine).
 
 ## Do first, in order
 
@@ -9,7 +11,7 @@ Milestone 1 (the ray bench) is merged on local `master` and green. It is not pus
 1. **Restart Claude Code.** idleflow 0.1.7 is downloaded but only becomes active after a restart (per-task retries, the PRD-template fix).
 2. **Switch the machine to pnpm 12.** Homebrew's pnpm 9 cannot read the lockfile. Run `brew uninstall pnpm && corepack enable` (or prefix commands with `corepack pnpm` until then).
 3. **Check the app by eye.** `pnpm install && pnpm dev`, then compare against `reference/ui-mockup/ray-bench.dc.html` (the prototype artifact): ray glow at focus points, eye strip, inspector readouts, Share, the three example scenes, phone width.
-4. **Push `master`** (38 commits ahead of `origin/master`): `git push`. This runs CI for the first time, including the Playwright job. The speed budgets were measured on an Apple M-series machine; if the slower GitHub runners fail `apps/web/e2e/perf.spec.ts`, decide whether to scale the budgets for CI or keep them.
+4. **Make CI green.** Decide on the magnifier eye budget, which fails on GitHub's runner (201.6 ms scaled vs 100 ms). Options: speed up the eye pass (fewer dense rays aimed at the pupil, the per-ray cost in `nearestHit`), which helps real slow devices too; or measure the budget relative to a calibration trace on the same machine so slower runners do not fail a fixed number. Run it as `/idleflow:fix` together with item 0.
 5. **Link Vercel and deploy**, then check the production URL opens the bench and pull requests get preview URLs.
 6. **Tag the release** once CI is green and the deploy works:
    ```

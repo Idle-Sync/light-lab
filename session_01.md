@@ -35,6 +35,10 @@ From an idea ("a light simulator like phydemo, but modern and accurate") to mile
 
 Verification on `master`: `pnpm check` (Biome, strict types, 174 unit tests), `pnpm e2e` (18 of 18), `node reference/checks/verify.mjs` (all pass).
 
+Pushed to `Idle-Sync/light-lab` `master`. First CI run: `check` passes; `e2e` passes 17 of 18, the magnifier eye budget fails on the GitHub runner (201.6 ms scaled vs 100 ms).
+
+A security review of the pushed code found that scene fields have no upper bounds, so a crafted link or saved scene can freeze the tab on every load; the fix is item 0 in `handoff_01.md`.
+
 ## Problems found and fixed during review
 
 - Decompression bomb in link decoding: links capped at 64K characters and 1 MB inflated.
@@ -44,4 +48,4 @@ Verification on `master`: `pnpm check` (Biome, strict types, 174 unit tests), `p
 
 ## Filed
 
-- Idle-Sync/idleflow issues #8 (fixed in 0.1.7), #9, #10, #11, #12.
+- Idle-Sync/idleflow issues #8 (fixed in 0.1.7), #9, #10, #11, #12, and #13 (`/idleflow:endsession`: a handoff and a whole-session summary, offered by Claude with a yes from the human when it is safe to run).
