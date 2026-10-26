@@ -16,6 +16,9 @@ export interface SurfaceGrid {
   rows: number;
   /** Surface indices per cell, row by row. */
   cells: number[][];
+  /** Per surface, the walk that tested it last, so a ray tests each surface once. */
+  lastTestedInWalk: Uint32Array;
+  walkCount: number;
 }
 
 interface Box {
@@ -56,6 +59,8 @@ export function buildSurfaceGrid(surfaces: Surface[]): SurfaceGrid {
       columns: 0,
       rows: 0,
       cells: [],
+      lastTestedInWalk: new Uint32Array(0),
+      walkCount: 0,
     };
   }
   // A margin keeps the grid a real area even for a single straight surface.
@@ -78,6 +83,8 @@ export function buildSurfaceGrid(surfaces: Surface[]): SurfaceGrid {
     columns: cellsPerSide,
     rows: cellsPerSide,
     cells: [],
+    lastTestedInWalk: new Uint32Array(surfaces.length),
+    walkCount: 0,
   };
   for (let cell = 0; cell < cellsPerSide * cellsPerSide; cell += 1) grid.cells.push([]);
 
@@ -151,12 +158,14 @@ export function nearestHit(
   const columnT = ray.dx === 0 ? Infinity : grid.cellWidth / Math.abs(ray.dx);
   const rowT = ray.dy === 0 ? Infinity : grid.cellHeight / Math.abs(ray.dy);
 
-  const tested = new Set<number>();
+  // A stamp per surface instead of a Set per ray: no allocation in the innermost loop.
+  grid.walkCount += 1;
+  const walk = grid.walkCount;
   let best: { hit: SurfaceHit; surface: Surface; index: number } | null = null;
   while (column >= 0 && column < grid.columns && row >= 0 && row < grid.rows) {
     for (const index of grid.cells[row * grid.columns + column]) {
-      if (tested.has(index)) continue;
-      tested.add(index);
+      if (grid.lastTestedInWalk[index] === walk) continue;
+      grid.lastTestedInWalk[index] = walk;
       const hit = hitSurface(grid.surfaces[index], ray);
       if (!hit || hit.t >= noHitLength) continue;
       const closer = !best || hit.t < best.hit.t || (hit.t === best.hit.t && index < best.index);
