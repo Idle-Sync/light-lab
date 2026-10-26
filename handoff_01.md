@@ -4,6 +4,8 @@ Milestone 1 (the ray bench) is merged on local `master` and green. It is not pus
 
 ## Do first, in order
 
+0. **Fix the scene-size security findings before deploying.** A crafted `#z.` link or saved scene can set huge values (for example `rays`, `length`, `radius`) that the schema accepts, so the tracer and the draw loops (mirror hatching and ruler ticks in `apps/web/src/bench/draw.ts`, `raysPerPoint` in `packages/engine/src/trace.ts`) run for minutes. The scene is then saved to browser storage, so the tab freezes again on every reload. Fix: bound every numeric field in the valibot `sceneSchema` to the inspector slider ranges, clamp `raysPerPoint` in the drawing pass, stop emitting once `maxSegments` is reached, and cap hatch and tick counts per draw. Add a test that opens a scene with extreme values and stays within budget. Run it as `/idleflow:fix`.
+
 1. **Restart Claude Code.** idleflow 0.1.7 is downloaded but only becomes active after a restart (per-task retries, the PRD-template fix).
 2. **Switch the machine to pnpm 12.** Homebrew's pnpm 9 cannot read the lockfile. Run `brew uninstall pnpm && corepack enable` (or prefix commands with `corepack pnpm` until then).
 3. **Check the app by eye.** `pnpm install && pnpm dev`, then compare against `reference/ui-mockup/ray-bench.dc.html` (the prototype artifact): ray glow at focus points, eye strip, inspector readouts, Share, the three example scenes, phone width.
