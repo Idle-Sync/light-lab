@@ -5,6 +5,7 @@ import {
   type SceneObject,
   type Spectrum,
 } from '@light-lab/engine';
+import type { Store } from '../store';
 
 export interface SliderField {
   type: 'slider';
@@ -82,7 +83,7 @@ export const kindTitles: Record<ObjectKind, string> = {
 export const kindFields: Record<ObjectKind, Field[]> = {
   point: [
     spectrum,
-    slider('Rays per wavelength', 'rays', 1, 121, '', 2),
+    slider('Rays per wavelength', 'rays', 1, 201, '', 2),
     slider('Cone angle', 'cone', 1, 360, '°'),
     angle('Direction'),
   ],
@@ -158,4 +159,27 @@ export function physicalPatch(
     return { ...patch, diameter: Math.min(merged.diameter, limit) } as Partial<SceneObject>;
   }
   return patch;
+}
+
+/**
+ * Applies a slider value to an object. While a pointer holds the thumb the changes merge into
+ * one history entry, closed by `store.finishEdit()` on pointerup; a keyboard step is its own entry.
+ */
+export function sliderInput(
+  store: Store,
+  id: number,
+  key: string,
+  value: number,
+  options: { pointerHeld: boolean },
+): void {
+  const object = store.getState().scene.objects.find((candidate) => candidate.id === id);
+  if (!object) return;
+  const patch = physicalPatch(object, { [key]: value } as Partial<SceneObject>);
+  store.updateObject(id, patch, { continuesEdit: options.pointerHeld });
+}
+
+/** A chip click: picking the option already on is no edit, so it adds no history entry. */
+export function pickChip<T>(on: boolean, value: T, onPick: (value: T) => void): void {
+  if (on) return;
+  onPick(value);
 }
