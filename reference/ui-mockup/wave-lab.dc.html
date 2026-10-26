@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Light Lab wave lab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#000}
+a{color:#FFB547}a:hover{color:#FFD08A}
+button,input{font:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+.chip:hover{border-color:#4A515E !important}
+@media (max-width:760px){
+.scene-name{display:none !important}
+.root{height:auto !important;min-height:100vh;overflow:visible !important}
+.stage{flex-basis:100% !important;height:520px;flex-grow:0 !important}
+.panel{max-width:none !important;border-left:0 !important;border-top:1px solid #2C313B !important}
+}
+</style>
+</helmet>
+<div class="root" style="height: 100vh; display: flex; flex-direction: column; background: #000000; color: #E6E8EC; font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 13px; overflow: hidden">
+  <header style="height: 56px; flex: 0 0 auto; display: flex; align-items: center; gap: 16px; padding: 0 16px; background: #191C22; border-bottom: 1px solid #2C313B; box-sizing: border-box">
+    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 0">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4l7 13H5z" stroke="#E6E8EC" stroke-width="1.6" stroke-linejoin="round"></path><path d="M1 11.5h8" stroke="#FFF6E6" stroke-width="1.6" stroke-linecap="round"></path><path d="M15 12.5l8 -2" stroke="#FF6A5C" stroke-width="1.4" stroke-linecap="round"></path><path d="M15 13.2l8 0.6" stroke="#FFD34D" stroke-width="1.4" stroke-linecap="round"></path><path d="M15 13.9l8 3.2" stroke="#5C8DFF" stroke-width="1.4" stroke-linecap="round"></path></svg>
+      <span style="font-size: 15px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap">Light Lab</span>
+      <span class="scene-name" style="font-size: 13px; color: #A3AAB6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ sceneName }}</span>
+    </div>
+    <nav aria-label="Simulation mode" style="display: flex; padding: 3px; background: #000000; border: 1px solid #2C313B; border-radius: 999px">
+      <a href="Main.dc.html" style="min-height: 38px; display: flex; align-items: center; padding: 0 18px; border-radius: 999px; color: #A3AAB6; text-decoration: none; font-weight: 500">Rays</a>
+      <a href="DoubleSlit.dc.html" aria-current="page" style="min-height: 38px; display: flex; align-items: center; padding: 0 18px; border-radius: 999px; background: #2A2F39; color: #E6E8EC; text-decoration: none; font-weight: 500">Waves</a>
+    </nav>
+    <div style="flex: 1 1 0"></div>
+  </header>
+
+  <main style="flex: 1 1 auto; min-height: 0; display: flex; flex-wrap: wrap">
+    <div class="stage" style="flex: 999 1 560px; min-width: 0; position: relative; min-height: 420px">
+      <canvas ref="{{ canvasRef }}" role="img" aria-label="{{ canvasLabel }}" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block"></canvas>
+    </div>
+
+    <aside class="panel" aria-label="Experiment" style="flex: 1 1 320px; max-width: 380px; box-sizing: border-box; padding: 20px; display: flex; flex-direction: column; gap: 22px; background: #191C22; border-left: 1px solid #2C313B; overflow-y: auto">
+      <section aria-label="Measurement" style="display: flex; flex-direction: column; gap: 14px; padding: 16px; border: 1px solid #2C313B; border-radius: 12px; background: #000000">
+        <div>
+          <p style="margin: 0; color: #A3AAB6; font-size: 12px">{{ measLabel }}</p>
+          <p style="margin: 4px 0 0; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: #FFD08A">{{ measValue }}</p>
+        </div>
+        <dl style="margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px">
+          <sc-for list="{{ measRows }}" as="r" hint-placeholder-count="3">
+            <dt style="color: #A3AAB6">{{ r.label }}</dt>
+            <dd style="margin: 0; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums">{{ r.value }}</dd>
+          </sc-for>
+        </dl>
+        <p style="margin: 0; padding-top: 12px; border-top: 1px solid #2C313B; color: #C9CED6; line-height: 1.5">{{ regime }}</p>
+      </section>
+
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+        <div role="group" aria-label="{{ g.label }}" style="display: flex; flex-direction: column; gap: 8px">
+          <span style="color: #A3AAB6; font-size: 12px">{{ g.label }}</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{ g.chips }}" as="c" hint-placeholder-count="3">
+              <button type="button" class="chip" aria-pressed="{{ c.pressed }}" onClick="{{ c.pick }}" style="min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{ c.bd }}; background: {{ c.bg }}; color: {{ c.fg }}; cursor: pointer; font-size: 13px">{{ c.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+
+      <sc-for list="{{ ranges }}" as="f" hint-placeholder-count="5">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+            <label for="{{ f.id }}" style="color: #C9CED6">{{ f.label }}</label>
+            <span style="font-variant-numeric: tabular-nums; font-weight: 500">{{ f.text }}</span>
+          </div>
+          <input id="{{ f.id }}" type="range" min="{{ f.min }}" max="{{ f.max }}" step="{{ f.step }}" value="{{ f.value }}" onChange="{{ f.change }}" style="width: 100%; margin: 0; height: 28px; accent-color: #FFB547; cursor: pointer">
+        </div>
+      </sc-for>
+
+      <p style="margin: 0; color: #A3AAB6; font-size: 12px; line-height: 1.55">{{ method }}</p>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  rgb(nm) {
+    var r = 0, g = 0, b = 0;
+    if (nm < 440) { r = (440 - nm) / 60; b = 1; }
+    else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
+    else if (nm < 510) { g = 1; b = (510 - nm) / 20; }
+    else if (nm < 580) { r = (nm - 510) / 70; g = 1; }
+    else if (nm < 645) { r = 1; g = (645 - nm) / 65; }
+    else { r = 1; }
+    var f = nm < 420 ? 0.3 + 0.7 * (nm - 380) / 40 : nm > 700 ? 0.3 + 0.7 * (780 - nm) / 80 : 1;
+    var cv = function (x) { return Math.round(255 * Math.pow(Math.max(0, x * f), 0.8)); };
+    return [cv(r), cv(g), cv(b)];
+  }
+
+  nice(x) {
+    var p = Math.pow(10, Math.floor(Math.log10(x))), m = x / p;
+    return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
+  }
+
+  slitCount() { return this.p.mode === 'single' ? 1 : this.p.mode === 'double' ? 2 : this.p.N; }
+
+  // Huygens-Fresnel sum over every slit, 2D cylindrical wavelets with obliquity factor; lengths in mm
+  compute() {
+    var t0 = performance.now(), p = this.p, lam = p.nm * 1e-6, k = 2 * Math.PI / lam, a = p.a * 1e-3, d = p.d * 1e-3, L = p.L, N = this.slitCount();
+    var M = Math.max(300, Math.min(2000, Math.round(this.pw || 900))), Y = p.Y, cs = [];
+    for (var j = 0; j < N; j++) cs.push((j - (N - 1) / 2) * d);
+    var W = (N - 1) * d + a, edge = Y + W / 2;
+    var span = k * a * edge / Math.hypot(edge, L) + k * a * a / (4 * L);
+    var S = Math.min(600, Math.max(24, Math.ceil(span / 0.2) + 8));
+    var us = new Float64Array(S);
+    for (j = 0; j < S; j++) us[j] = -a / 2 + (j + 0.5) * a / S;
+    var I = new Float64Array(M), T = new Float64Array(M), ys = new Float64Array(M), mx = 0;
+    for (var i = 0; i < M; i++) {
+      var y = -Y + 2 * Y * i / (M - 1), re = 0, im = 0;
+      for (var c = 0; c < N; c++) {
+        for (var q = 0; q < S; q++) {
+          var dy = y - cs[c] - us[q], r = Math.sqrt(L * L + dy * dy), ph = k * (dy * dy / (r + L)), amp = (1 + L / r) / (2 * Math.sqrt(r));
+          re += amp * Math.cos(ph); im += amp * Math.sin(ph);
+        }
+      }
+      ys[i] = y; I[i] = re * re + im * im;
+      if (I[i] > mx) mx = I[i];
+      var st = y / Math.hypot(y, L), be = Math.PI * a * st / lam, env = Math.abs(be) < 1e-12 ? 1 : Math.pow(Math.sin(be) / be, 2), af = 1;
+      if (N > 1) { var al = Math.PI * d * st / lam, sa = Math.sin(al); af = Math.abs(sa) < 1e-12 ? 1 : Math.pow(Math.sin(N * al) / (N * sa), 2); }
+      T[i] = env * af;
+    }
+    for (i = 0; i < M; i++) I[i] /= mx;
+
+    var dyS = ys[1] - ys[0];
+    // extreme of A inside [yc - hw, yc + hw], refined with a parabola; null when it sits on the window edge or off screen
+    var extreme = function (A, yc, hw, wantMax) {
+      var i0 = Math.max(1, Math.ceil((yc - hw + Y) / dyS)), i1 = Math.min(M - 2, Math.floor((yc + hw + Y) / dyS)), bi = -1;
+      for (var ii = i0; ii <= i1; ii++) if (bi < 0 || (wantMax ? A[ii] > A[bi] : A[ii] < A[bi])) bi = ii;
+      if (bi < 0 || bi === i0 || bi === i1) return null;
+      var a0 = A[bi - 1], b0 = A[bi], c0 = A[bi + 1], den = a0 - 2 * b0 + c0;
+      return ys[bi] + (den === 0 ? 0 : 0.5 * (a0 - c0) / den) * dyS;
+    };
+    var size = N === 1 ? a : d, isMax = N > 1, meas = { measured: null, fraun: null, theory: null, small: lam * L / size };
+    if (lam / size < 1) {
+      meas.theory = L * Math.tan(Math.asin(lam / size));
+      var hw = 0.3 * meas.small, r1 = extreme(I, meas.theory, hw, isMax), l1 = extreme(I, -meas.theory, hw, isMax);
+      var r2 = extreme(T, meas.theory, hw, isMax), l2 = extreme(T, -meas.theory, hw, isMax);
+      if (r1 != null && l1 != null) { meas.measured = (r1 - l1) / 2; meas.left = l1; meas.right = r1; }
+      if (r2 != null && l2 != null) meas.fraun = (r2 - l2) / 2;
+    }
+    this.out = { I: I, T: T, M: M, N: N, S: S, meas: meas, fresnel: (W / 2) * (W / 2) / (lam * L), ms: performance.now() - t0 };
+  }
+
+  draw() {
+    if (!this.cv || !this.W || !this.out) return;
+    var ctx = this.cv.getContext('2d'), dpr = this.dpr, W = this.W, H = this.H, o = this.out, p = this.p, col = this.rgb(p.nm);
+    var cs = function (a) { return 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',' + a + ')'; };
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    ctx.font = '500 12px "Instrument Sans", system-ui, sans-serif';
+
+    var pad = 32, x0 = pad + 30, pw = this.pw, top = 44, sh = Math.max(150, H * 0.32), mid = top + sh / 2;
+    var stripY = top + sh + 56, stripH = 56, plotY = stripY + stripH + 52, plotH = Math.max(80, H - plotY - 44);
+    var X = function (y) { return x0 + (y + p.Y) / (2 * p.Y) * pw; };
+
+    // schematic
+    var lx = pad, bx = pad + Math.max(150, pw * 0.26), sx = W - pad - 70, N = o.N;
+    var vs = Math.min(26, sh * 0.6 / Math.max(1, N)), gap = N === 1 ? 12 : Math.max(3, Math.min(vs * 0.7, vs * p.a / p.d));
+    var ysl = [];
+    for (var j = 0; j < N; j++) ysl.push(mid + (j - (N - 1) / 2) * vs);
+
+    ctx.fillStyle = '#191C22'; ctx.strokeStyle = '#3A404C'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.rect(lx, mid - 16, 72, 32); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#C9CED6'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('Laser', lx + 36, mid);
+    ctx.fillStyle = '#A3AAB6'; ctx.textBaseline = 'top';
+    ctx.fillText(p.nm.toFixed(1) + ' nm', lx + 36, mid + 24);
+
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowColor = cs(1); ctx.shadowBlur = 12;
+    ctx.strokeStyle = cs(0.95); ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(lx + 72, mid); ctx.lineTo(bx, mid); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(bx, top, sx - bx, sh); ctx.clip();
+    ctx.lineWidth = 1.2;
+    var reach = Math.hypot(sx - bx, sh);
+    for (j = 0; j < N; j++) {
+      for (var r = 8; r < reach; r += 11) {
+        ctx.strokeStyle = cs((0.24 / Math.sqrt(N)) * (1 - 0.7 * r / reach));
+        ctx.beginPath(); ctx.arc(bx, ysl[j], r, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+      }
+    }
+    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
+
+    ctx.strokeStyle = '#C9CED6'; ctx.lineWidth = 3; ctx.lineCap = 'butt';
+    ctx.beginPath();
+    var yy = top;
+    for (j = 0; j < N; j++) { ctx.moveTo(bx, yy); ctx.lineTo(bx, ysl[j] - gap / 2); yy = ysl[j] + gap / 2; }
+    ctx.moveTo(bx, yy); ctx.lineTo(bx, top + sh);
+    ctx.stroke();
+
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(sx, top); ctx.lineTo(sx, top + sh); ctx.stroke();
+    for (var py = 0; py < sh; py++) {
+      var ym = (py - sh / 2) / (sh / 2) * p.Y, ii = Math.round((ym + p.Y) / (2 * p.Y) * (o.M - 1));
+      if (ii < 0 || ii >= o.M) continue;
+      ctx.fillStyle = cs(0.9);
+      ctx.fillRect(sx + 4, top + py, o.I[ii] * 56, 1);
+    }
+
+    ctx.fillStyle = '#A3AAB6'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    var um = ' µm';
+    ctx.fillText(N === 1 ? 'a ' + p.a + um : 'a ' + p.a + um + ', d ' + p.d + um + (N > 2 ? ', ' + N + ' slits' : ''), bx, top + sh + 10);
+    ctx.textAlign = 'right';
+    ctx.fillText('Schematic, not to scale', W - pad, top + sh + 10);
+    ctx.strokeStyle = '#4A515E'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(bx, top - 18); ctx.lineTo(sx, top - 18); ctx.moveTo(bx, top - 23); ctx.lineTo(bx, top - 13); ctx.moveTo(sx, top - 23); ctx.lineTo(sx, top - 13); ctx.stroke();
+    var lt = 'L ' + p.L.toLocaleString('en-US') + ' mm', lw = ctx.measureText(lt).width + 16;
+    ctx.fillStyle = '#000'; ctx.fillRect((bx + sx) / 2 - lw / 2, top - 26, lw, 16);
+    ctx.fillStyle = '#A3AAB6'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(lt, (bx + sx) / 2, top - 18);
+
+    // screen strip
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#C9CED6';
+    ctx.fillText('Screen, ±' + p.Y + ' mm', x0, stripY - 12);
+    for (var i = 0; i < pw; i++) {
+      var k = Math.min(o.M - 1, Math.round(i * (o.M - 1) / (pw - 1))), b = Math.pow(o.I[k], 0.5);
+      ctx.fillStyle = 'rgb(' + Math.round(col[0] * b) + ',' + Math.round(col[1] * b) + ',' + Math.round(col[2] * b) + ')';
+      ctx.fillRect(x0 + i, stripY, 1.5, stripH);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
+    ctx.strokeRect(x0 - 0.5, stripY - 0.5, pw + 1, stripH + 1);
+
+    // plot
+    ctx.fillStyle = '#C9CED6';
+    ctx.fillText('Relative intensity', x0, plotY - 16);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#A3AAB6';
+    ctx.strokeStyle = '#22262E';
+    [0, 0.5, 1].forEach(function (v) {
+      var gy = plotY + plotH * (1 - v);
+      ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x0 + pw, gy); ctx.stroke();
+      ctx.fillText(String(v), x0 - 8, gy);
+    });
+    var step = this.nice(p.Y / 4);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (var t = -Math.floor(p.Y / step) * step; t <= p.Y + 1e-9; t += step) {
+      var tx = X(t);
+      ctx.strokeStyle = '#3A404C';
+      ctx.beginPath(); ctx.moveTo(tx, plotY + plotH); ctx.lineTo(tx, plotY + plotH + 5); ctx.stroke();
+      ctx.fillText((+t.toPrecision(4)) + (Math.abs(t) < 1e-9 ? ' mm' : ''), tx, plotY + plotH + 9);
+    }
+
+    var m = o.meas, A = '#FFB547';
+    var marks = m.measured != null ? [m.left, m.right] : [];
+    ctx.setLineDash([3, 4]); ctx.strokeStyle = 'rgba(255,181,71,0.6)'; ctx.lineWidth = 1;
+    marks.forEach(function (y) { var mx = X(y); ctx.beginPath(); ctx.moveTo(mx, stripY); ctx.lineTo(mx, plotY + plotH); ctx.stroke(); });
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle = cs(1); ctx.lineWidth = 1.8; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (i = 0; i < o.M; i++) { var px = x0 + i * pw / (o.M - 1), pyy = plotY + plotH * (1 - o.I[i]); if (i) ctx.lineTo(px, pyy); else ctx.moveTo(px, pyy); }
+    ctx.stroke();
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = '#9AA2AF'; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (i = 0; i < o.M; i++) { var qx = x0 + i * pw / (o.M - 1), qy = plotY + plotH * (1 - o.T[i]); if (i) ctx.lineTo(qx, qy); else ctx.moveTo(qx, qy); }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (marks.length) {
+      ctx.fillStyle = A; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+      ctx.fillText(o.N === 1 ? 'First minimum' : 'First order', X(marks[1]) + 6, plotY + 14);
+    }
+
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    var lgY = plotY - 20, lgX = x0 + pw;
+    ctx.fillStyle = '#C9CED6';
+    ctx.fillText('Fraunhofer formula', lgX, lgY);
+    var w2 = ctx.measureText('Fraunhofer formula').width;
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = '#9AA2AF'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(lgX - w2 - 32, lgY); ctx.lineTo(lgX - w2 - 8, lgY); ctx.stroke();
+    ctx.setLineDash([]);
+    var l1 = 'Huygens–Fresnel sum', x1 = lgX - w2 - 52;
+    ctx.fillText(l1, x1, lgY);
+    var w1 = ctx.measureText(l1).width;
+    ctx.strokeStyle = cs(1); ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.moveTo(x1 - w1 - 32, lgY); ctx.lineTo(x1 - w1 - 8, lgY); ctx.stroke();
+  }
+
+  resize() {
+    var box = this.cv.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    if (box.width < 1 || box.height < 1) return;
+    this.W = box.width; this.H = box.height; this.dpr = dpr;
+    this.cv.width = Math.round(box.width * dpr);
+    this.cv.height = Math.round(box.height * dpr);
+    this.pw = Math.max(200, Math.round(this.W - 2 * 32 - 46));
+    this.compute();
+    this.draw();
+    this.ui();
+  }
+
+  ui() {
+    if (this._raf) return;
+    this._raf = requestAnimationFrame(() => { this._raf = 0; this.forceUpdate(); });
+  }
+
+  componentWillUnmount() {
+    if (this.ro) this.ro.disconnect();
+    if (this._raf) cancelAnimationFrame(this._raf);
+  }
+
+  update() { this.compute(); this.draw(); this.ui(); }
+
+  handlers() {
+    var self = this;
+    return {
+      canvasRef: function (el) {
+        if (!el || el === self.cv) return;
+        self.cv = el;
+        if (self.ro) self.ro.disconnect();
+        self.ro = new ResizeObserver(function () { self.resize(); });
+        self.ro.observe(el.parentElement);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { self.draw(); });
+      }
+    };
+  }
+
+  fmt(v) { return v == null ? 'Out of view' : v.toFixed(4) + ' mm'; }
+
+  renderVals() {
+    if (!this.p) this.p = { mode: 'double', nm: 532, a: 40, d: 250, N: 6, L: 1000, Y: 20 };
+    if (!this._h) this._h = this.handlers();
+    if (!this.out) this.compute();
+    var self = this, p = this.p, o = this.out, m = o.meas, N = this.slitCount(), ranges = [], groups = [];
+    var rg = function (key, label, min, max, step, text, set) {
+      ranges.push({ id: 'w_' + key, label: label, min: min, max: max, step: step, value: p[key], text: text(p[key]), change: function (e) { var v = parseFloat(e.target.value); if (set) set(v); else p[key] = v; self.update(); } });
+    };
+    var ch = function (label, opts, key) {
+      groups.push({ label: label, chips: opts.map(function (op) {
+        var on = p[key] === op.v;
+        return { label: op.l, pressed: on, bg: on ? 'rgba(255,181,71,0.14)' : 'transparent', bd: on ? 'rgba(255,181,71,0.6)' : '#2C313B', fg: on ? '#FFD08A' : '#C9CED6', pick: function () { p[key] = op.v; if (p.mode !== 'single' && p.a >= p.d) p.a = Math.max(5, p.d - 1); self.update(); } };
+      }) });
+    };
+    var um = function (v) { return v + ' µm'; };
+    ch('Aperture', [{ v: 'single', l: 'Single slit' }, { v: 'double', l: 'Double slit' }, { v: 'grating', l: 'Grating' }], 'mode');
+    ch('Laser line', [{ v: 405, l: '405 nm' }, { v: 532, l: '532 nm' }, { v: 589.3, l: '589 nm' }, { v: 632.8, l: '633 nm' }], 'nm');
+    rg('nm', 'Wavelength', 380, 750, 0.1, function (v) { return v.toFixed(1) + ' nm'; });
+    rg('a', 'Slit width a', 5, 500, 1, um, function (v) { p.a = N > 1 ? Math.min(v, p.d - 1) : v; });
+    if (N > 1) rg('d', 'Slit separation d', 20, 3000, 1, um, function (v) { p.d = Math.max(v, p.a + 1); });
+    if (p.mode === 'grating') rg('N', 'Number of slits', 3, 40, 1, String);
+    rg('L', 'Screen distance L', 50, 5000, 10, function (v) { return v.toLocaleString('en-US') + ' mm'; });
+    rg('Y', 'Screen view', 0.5, 100, 0.5, function (v) { return '±' + v + ' mm'; });
+
+    var diff = m.measured != null && m.fraun ? (m.measured - m.fraun) / m.fraun * 100 : null;
+    var pct = function (v) { return v == null ? 'n/a' : (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(3) + ' %'; };
+    var F = o.fresnel;
+    var regime = F < 0.1 ? 'Far field. The Fraunhofer formula holds here, so both curves agree closely.'
+      : F < 1 ? 'Transition zone. Expect small departures from the Fraunhofer formula.'
+      : 'Near field. Only the Huygens–Fresnel sum is valid here; the Fraunhofer curve is shown for comparison.';
+    if (N > 1 && m.fraun && m.theory && Math.abs(m.fraun - m.theory) / m.theory > 5e-4) regime += ' The single-slit envelope pulls each bright fringe slightly toward the center, so it sits inside d sin θ = λ.';
+    var names = { single: 'Single-slit diffraction', double: 'Double-slit interference', grating: 'Diffraction grating, ' + p.N + ' slits' };
+    return Object.assign({}, this._h, {
+      sceneName: names[p.mode],
+      canvasLabel: names[p.mode] + ' pattern at ' + p.nm + ' nm',
+      measLabel: N === 1 ? 'First dark fringe, from center' : 'Fringe spacing, first order',
+      measValue: this.fmt(m.measured),
+      measRows: [
+        { label: 'Fraunhofer formula', value: this.fmt(m.fraun) },
+        { label: 'Sum minus formula', value: pct(diff) },
+        { label: N === 1 ? 'Condition a sin θ = λ' : 'Condition d sin θ = λ', value: this.fmt(m.theory) },
+        { label: N === 1 ? 'Small-angle λL / a' : 'Small-angle λL / d', value: this.fmt(m.small) },
+        { label: 'Fresnel number', value: F < 0.01 ? F.toExponential(2) : F.toFixed(3) }
+      ],
+      regime: m.measured == null ? 'The first ' + (N === 1 ? 'minimum' : 'order') + ' is off screen. Widen the screen view to measure it.' : regime,
+      groups: groups,
+      ranges: ranges,
+      method: 'The pattern is an exact sum of Huygens wavelets: ' + o.S + ' points across each slit, ' + o.M.toLocaleString('en-US') + ' points on the screen, computed in ' + o.ms.toFixed(1) + ' ms. Positions are measured from that curve, not from the formula.'
+    });
+  }
+}
+</script>
+</body>
+</html>
