@@ -36,6 +36,7 @@ function settingsOffDefault(settings: Settings): Partial<Settings> {
     changed.grid = grid;
   }
   if (settings.sightLines !== defaultSettings.sightLines) changed.sightLines = settings.sightLines;
+  if (settings.showImages !== defaultSettings.showImages) changed.showImages = settings.showImages;
   return changed;
 }
 

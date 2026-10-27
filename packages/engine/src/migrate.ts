@@ -1,11 +1,13 @@
 import { parseScene, type Scene, SceneError, wrapAngle } from './scene';
 
-const currentVersion = 2;
+const currentVersion = 3;
 
 /** Upgrades scene JSON from version `n` to `n + 1`, keyed by `n`. Never delete an entry. */
 export const migrations: Record<number, (json: object) => object> = {
   // Version 2 adds the optional `grid` and `sightLines` settings; their defaults fill them in.
   1: (json) => ({ ...json, v: 2 }),
+  // Version 3 adds the optional `showImages` setting; its default fills it in.
+  2: (json) => ({ ...json, v: 3 }),
 };
 
 /** Brings scene JSON of any shipped version up to the current one, then validates it. */

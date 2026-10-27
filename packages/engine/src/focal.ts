@@ -16,7 +16,7 @@ type Side = 'front' | 'back';
 function leavingParaxialRay(object: SceneObject, nm: number, side: Side): TracedRay | null {
   const fromFront = side === 'front';
   const scene: Scene = {
-    v: 2,
+    v: 3,
     settings: { ...defaultSettings, partialReflections: false },
     objects: [
       { ...object, x: 0, y: 0, angle: 0 },

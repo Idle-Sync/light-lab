@@ -474,6 +474,15 @@ function SceneSettings(props: { scene: Scene; results: SceneResults | null }) {
         onPick={(value) => set({ partialReflections: value as boolean })}
       />
       <Chips
+        label="Show images"
+        options={[
+          { value: true, label: 'On' },
+          { value: false, label: 'Off' },
+        ]}
+        isOn={(value) => value === settings.showImages}
+        onPick={(value) => set({ showImages: value === true })}
+      />
+      <Chips
         label="Polarization"
         options={polarizationOptions}
         isOn={(value) => value === settings.polarization}

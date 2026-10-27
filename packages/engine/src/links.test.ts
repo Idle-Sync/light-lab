@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { deflateRawSync } from 'node:zlib';
+import { deflateRawSync, inflateRawSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { examples } from './examples';
 import { decodeSceneLink, encodeSceneLink } from './links';
@@ -7,6 +7,10 @@ import { parseScene, type Scene, SceneError } from './scene';
 
 function plainLink(json: string): string {
   return `j.${Buffer.from(json).toString('base64url')}`;
+}
+
+async function inflateLink(link: string): Promise<string> {
+  return inflateRawSync(Buffer.from(link.slice(2), 'base64url')).toString();
 }
 
 // One sample link per shipped scene version, keyed by version; add one with every new version.
@@ -34,9 +38,16 @@ describe('scene links', () => {
         brightness: '3d',
         grid: { show: false, size: 2.5, snap: true },
         sightLines: false,
+        showImages: false,
       },
     };
     expect(await decodeSceneLink(await encodeSceneLink(scene))).toEqual(scene);
+  });
+
+  it('leaves a default showImages out of the link', async () => {
+    const link = await encodeSceneLink(examples.bench);
+    const inflated = JSON.parse(await inflateLink(link));
+    expect(inflated.settings).not.toHaveProperty('showImages');
   });
 
   it('reads a link with the leading # of location.hash', async () => {
@@ -79,14 +90,28 @@ describe('scene links', () => {
     'decodes the sample link of version %s',
     async (version, link) => {
       const scene = await decodeSceneLink(link);
-      expect(scene.v).toBe(2);
+      expect(scene.v).toBe(3);
       expect(scene).toEqual(parseScene(scene));
       expect(version).toMatch(/^\d+$/);
     },
   );
 
   it('keeps a sample link for every shipped version', () => {
-    expect(Object.keys(sampleLinks)).toEqual(['1', '2']);
+    expect(Object.keys(sampleLinks)).toEqual(['1', '2', '3']);
+  });
+
+  it('keeps the version 3 link under 500 characters', () => {
+    expect(sampleLinks['3'].length).toBeLessThan(500);
+  });
+
+  it('keeps the version 3 sample on settings that differ from their defaults', async () => {
+    const scene = await decodeSceneLink(sampleLinks['3']);
+    expect(scene.settings).toEqual({
+      ...examples.bench.settings,
+      brightness: '3d',
+      sightLines: false,
+      showImages: false,
+    });
   });
 
   it('keeps the version 2 bench link under 500 characters', () => {

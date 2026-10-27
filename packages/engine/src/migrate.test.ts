@@ -16,15 +16,36 @@ describe('migrateScene', () => {
       objects: [{ kind: 'ruler', id: 1, x: 0, y: 0, angle: 0, length: 50 }],
     };
     expect(migrateScene(version1)).toEqual({
-      v: 2,
+      v: 3,
       settings: {
         partialReflections: false,
         polarization: 's',
         brightness: '3d',
         grid: { show: true, size: 10, snap: false },
         sightLines: true,
+        showImages: true,
       },
       objects: version1.objects,
+    });
+  });
+
+  it('upgrades a version 2 scene with showImages on and its other settings kept', () => {
+    const version2 = {
+      v: 2,
+      settings: { partialReflections: false, brightness: '3d', sightLines: false },
+      objects: [{ kind: 'ruler', id: 1, x: 0, y: 0, angle: 0, length: 50 }],
+    };
+    expect(migrateScene(version2)).toEqual({
+      v: 3,
+      settings: {
+        partialReflections: false,
+        polarization: 'unpolarized',
+        brightness: '3d',
+        grid: { show: true, size: 10, snap: false },
+        sightLines: false,
+        showImages: true,
+      },
+      objects: version2.objects,
     });
   });
 
