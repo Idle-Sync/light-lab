@@ -86,10 +86,8 @@ export interface PupilAim {
   reach: number;
 }
 
-/**
- * The rays a source sends out; empty for objects that do not emit. With `aim`, the eye pass
- * spaces a cone's rays to the pupil's size instead of a ray every 0.05°.
- */
+/** The rays a source sends out; empty for objects that do not emit. With `aim`, the eye pass
+ *  spaces a cone's rays to the pupil's size instead of a ray every 0.05°. */
 export function emitRays(object: SceneObject, pass: TracePass, aim?: PupilAim): TracedRay[] {
   if (object.kind !== 'point' && object.kind !== 'beam' && object.kind !== 'object') return [];
   const wavelengths = spectrumOf(object.spectrum);
@@ -152,9 +150,8 @@ function emittingPoints(source: Source, pass: TracePass): Array<Point & { index:
 function raysPerPoint(source: Source, pass: TracePass, aim?: PupilAim): number {
   const asked = Math.min(fieldRanges[source.kind].rays.max, Math.max(1, Math.round(source.rays)));
   if (pass === 'drawing') return asked;
-  // The eye pass samples densely: a ray every 0.08 mm of beam. A cone gets a ray every 0.05°
-  // or, aimed at a pupil, 24 rays across the angle the pupil spans at the scene's farthest
-  // distance, never finer than 0.05° nor coarser than 1°.
+  // The eye pass: a ray every 0.08 mm of beam; for a cone, one every 0.05° or, aimed at a pupil,
+  // 24 across the angle it spans at the scene's farthest distance, kept within 0.05° to 1°.
   if (source.kind === 'beam')
     return Math.min(800, Math.max(asked, Math.round(source.width / 0.08)));
   let spacingDegrees = 0.05;
@@ -165,10 +162,8 @@ function raysPerPoint(source: Source, pass: TracePass, aim?: PupilAim): number {
   return Math.min(1000, Math.max(asked, Math.round(Math.min(360, source.cone) / spacingDegrees)));
 }
 
-/**
- * How the eye pass aims a source's rays at `eye`; none without an eye, and none when a curved
- * mirror narrows the bundle that reaches the pupil below what the pupil's size suggests.
- */
+/** How the eye pass aims a source's rays at `eye`; none without an eye, or when a curved mirror
+ *  narrows the bundle that reaches the pupil below what the pupil's size suggests. */
 function pupilAim(scene: Scene, source: SceneObject, eye: Eye | undefined): PupilAim | undefined {
   if (!eye) return undefined;
   let reach = 0;
