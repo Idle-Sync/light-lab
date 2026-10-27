@@ -39,4 +39,4 @@ CI is red on its first run (run 40334623127): the `check` job passes; the `e2e` 
 - `progress.md`, `docs/sessions/s_0002.md`: what milestone 1 landed
 - `prd.md`: milestones 2 to 5 and every "done when"
 - `docs/vision.md`: physics models and accuracy oracles
-- `session_01.md`: everything decided in this session
+- `docs/sessions/session_01.md`: everything decided in this session

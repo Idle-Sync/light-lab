@@ -9,8 +9,8 @@ after every run so it never goes stale. Paths, not prose. Under 80 lines.
 - `progress.md` — what has landed and what is next
 - `.claude/conventions.md` — how code is written here, stack and library decisions, tooling
 - `CLAUDE.md` — working rules for every Claude Code session in this repo
-- `handoff_01.md` — what the next session does first
-- `session_01.md` — what the first session decided and built
+- `docs/handoffs/` — what the next session does first, one file per handoff
+- `docs/sessions/session_01.md` — what the first session decided and built
 
 ## Layout
 - `packages/engine/` — DOM-free engine: ray tracing, eye analysis, waves, scene schema and links

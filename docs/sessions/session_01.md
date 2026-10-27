@@ -37,7 +37,7 @@ Verification on `master`: `pnpm check` (Biome, strict types, 174 unit tests), `p
 
 Pushed to `Idle-Sync/light-lab` `master`. First CI run: `check` passes; `e2e` passes 17 of 18, the magnifier eye budget fails on the GitHub runner (201.6 ms scaled vs 100 ms).
 
-A security review of the pushed code found that scene fields have no upper bounds, so a crafted link or saved scene can freeze the tab on every load; the fix is item 0 in `handoff_01.md`.
+A security review of the pushed code found that scene fields have no upper bounds, so a crafted link or saved scene can freeze the tab on every load; the fix is item 0 in `docs/handoffs/handoff_01.md`.
 
 ## Problems found and fixed during review
 
