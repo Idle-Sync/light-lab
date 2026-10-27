@@ -2,7 +2,7 @@
 
 Milestone 1 (the ray bench) is merged and pushed to `Idle-Sync/light-lab` `master`. It is not deployed and not tagged.
 
-CI is red on its first run (run 40334623127): the `check` job passes; the `e2e` job passes 17 of 18. The failure is `apps/web/e2e/perf.spec.ts:98`, the magnifier eye analysis at 4x throttling: 201.6 ms scaled on the GitHub runner against the 100 ms budget (about 80 ms on an Apple M-series machine).
+CI is red on its first run (run 40334623127): the `check` job passes; the `e2e` job passes 17 of 18. The failure is `apps/web/e2e/perf.spec.ts:101`, the magnifier eye analysis at 4x throttling: 201.6 ms scaled on the GitHub runner against the 100 ms budget (about 80 ms on an Apple M-series machine).
 
 ## Do first, in order
 
