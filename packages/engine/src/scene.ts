@@ -2,102 +2,162 @@ import * as v from 'valibot';
 
 // Lengths are mm, angles degrees, wavelengths nm.
 
-const spectrumSchema = v.union([v.literal('white'), v.number()]);
+export interface NumberRange {
+  min: number;
+  max: number;
+}
+
+/** The limits of every scene field; the inspector sliders read the same numbers. */
+export const fieldRanges = {
+  position: { min: -10000, max: 10000 },
+  angle: { min: -180, max: 180 },
+  wavelength: { min: 380, max: 780 },
+  point: { rays: { min: 1, max: 201 }, cone: { min: 1, max: 360 } },
+  beam: { rays: { min: 1, max: 61 }, width: { min: 1, max: 120 } },
+  object: { height: { min: 2, max: 150 }, rays: { min: 1, max: 61 }, cone: { min: 1, max: 180 } },
+  mirror: { length: { min: 5, max: 300 } },
+  arcMirror: { radius: { min: 20, max: 600 }, diameter: { min: 4, max: 200 } },
+  lens: {
+    radius1: { min: 10, max: 400 },
+    radius2: { min: 10, max: 400 },
+    diameter: { min: 4, max: 120 },
+  },
+  prism: { side: { min: 10, max: 200 } },
+  ball: { diameter: { min: 2, max: 150 } },
+  blocker: { length: { min: 2, max: 300 } },
+  detector: { length: { min: 2, max: 300 } },
+  ruler: { length: { min: 1, max: 500 } },
+  eye: { pupil: { min: 1, max: 10 }, fieldOfView: { min: 10, max: 170 } },
+};
+
+export const maxObjects = 500;
+
+/** The same orientation inside -180..180; 180 stays 180. */
+export function wrapAngle(degrees: number): number {
+  if (degrees > -180 && degrees <= 180) return degrees;
+  const turned = ((((degrees + 180) % 360) + 360) % 360) - 180;
+  return turned === -180 ? 180 : turned;
+}
+
+function bounded(range: NumberRange) {
+  return v.pipe(v.number(), v.minValue(range.min), v.maxValue(range.max));
+}
+
+const spectrumSchema = v.union([v.literal('white'), bounded(fieldRanges.wavelength)]);
 const materialSchema = v.picklist(['bk7', 'sf11', 'silica']);
 
 const placement = {
-  id: v.number(),
-  x: v.number(),
-  y: v.number(),
-  angle: v.number(),
+  id: v.pipe(v.number(), v.integer(), v.minValue(0)),
+  x: bounded(fieldRanges.position),
+  y: bounded(fieldRanges.position),
+  angle: bounded(fieldRanges.angle),
 };
 
 // Strict objects so a field from another kind is reported instead of silently dropped.
 const pointSchema = v.strictObject({
   kind: v.literal('point'),
   ...placement,
-  cone: v.number(),
-  rays: v.number(),
+  cone: bounded(fieldRanges.point.cone),
+  rays: bounded(fieldRanges.point.rays),
   spectrum: spectrumSchema,
 });
 
 const beamSchema = v.strictObject({
   kind: v.literal('beam'),
   ...placement,
-  width: v.number(),
-  rays: v.number(),
+  width: bounded(fieldRanges.beam.width),
+  rays: bounded(fieldRanges.beam.rays),
   spectrum: spectrumSchema,
 });
 
 const extendedObjectSchema = v.strictObject({
   kind: v.literal('object'),
   ...placement,
-  height: v.number(),
-  cone: v.number(),
-  rays: v.number(),
+  height: bounded(fieldRanges.object.height),
+  cone: bounded(fieldRanges.object.cone),
+  rays: bounded(fieldRanges.object.rays),
   spectrum: spectrumSchema,
 });
 
 const mirrorSchema = v.strictObject({
   kind: v.literal('mirror'),
   ...placement,
-  length: v.number(),
+  length: bounded(fieldRanges.mirror.length),
 });
 
-const arcMirrorSchema = v.strictObject({
-  kind: v.literal('arcMirror'),
-  ...placement,
-  radius: v.number(),
-  diameter: v.number(),
-  form: v.picklist(['concave', 'convex']),
-});
+const arcMirrorSchema = v.pipe(
+  v.strictObject({
+    kind: v.literal('arcMirror'),
+    ...placement,
+    radius: bounded(fieldRanges.arcMirror.radius),
+    diameter: bounded(fieldRanges.arcMirror.diameter),
+    form: v.picklist(['concave', 'convex']),
+  }),
+  v.forward(
+    v.check(
+      (mirror) => mirror.diameter <= 1.96 * mirror.radius,
+      'Diameter is wider than the radius allows',
+    ),
+    ['diameter'],
+  ),
+);
 
-const lensSchema = v.strictObject({
-  kind: v.literal('lens'),
-  ...placement,
-  radius1: v.number(),
-  radius2: v.number(),
-  diameter: v.number(),
-  material: materialSchema,
-});
+// A diameter past this makes the lens surface asin of more than 1; the glass would vanish.
+const lensSchema = v.pipe(
+  v.strictObject({
+    kind: v.literal('lens'),
+    ...placement,
+    radius1: bounded(fieldRanges.lens.radius1),
+    radius2: bounded(fieldRanges.lens.radius2),
+    diameter: bounded(fieldRanges.lens.diameter),
+    material: materialSchema,
+  }),
+  v.forward(
+    v.check(
+      (lens) => lens.diameter <= 1.96 * Math.min(lens.radius1, lens.radius2),
+      'Diameter is wider than the radii allow',
+    ),
+    ['diameter'],
+  ),
+);
 
 const prismSchema = v.strictObject({
   kind: v.literal('prism'),
   ...placement,
-  side: v.number(),
+  side: bounded(fieldRanges.prism.side),
   material: materialSchema,
 });
 
 const ballSchema = v.strictObject({
   kind: v.literal('ball'),
   ...placement,
-  diameter: v.number(),
+  diameter: bounded(fieldRanges.ball.diameter),
   material: materialSchema,
 });
 
 const blockerSchema = v.strictObject({
   kind: v.literal('blocker'),
   ...placement,
-  length: v.number(),
+  length: bounded(fieldRanges.blocker.length),
 });
 
 const detectorSchema = v.strictObject({
   kind: v.literal('detector'),
   ...placement,
-  length: v.number(),
+  length: bounded(fieldRanges.detector.length),
 });
 
 const rulerSchema = v.strictObject({
   kind: v.literal('ruler'),
   ...placement,
-  length: v.number(),
+  length: bounded(fieldRanges.ruler.length),
 });
 
 const eyeSchema = v.strictObject({
   kind: v.literal('eye'),
   ...placement,
-  pupil: v.number(),
-  fieldOfView: v.number(),
+  pupil: bounded(fieldRanges.eye.pupil),
+  fieldOfView: bounded(fieldRanges.eye.fieldOfView),
 });
 
 export const sceneObjectSchema = v.variant('kind', [
@@ -137,7 +197,7 @@ const settingsSchema = v.strictObject({
 export const sceneSchema = v.strictObject({
   v: v.literal(2),
   settings: v.optional(settingsSchema, {}),
-  objects: v.array(sceneObjectSchema),
+  objects: v.pipe(v.array(sceneObjectSchema), v.maxLength(maxObjects)),
 });
 
 export type Scene = v.InferOutput<typeof sceneSchema>;

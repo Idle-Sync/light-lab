@@ -1,11 +1,14 @@
 import {
   defaultSettings,
+  fieldRanges,
   type GridSettings,
+  maxObjects,
   type ObjectKind,
   parseSceneObject,
   type Scene,
   type SceneObject,
   type Settings,
+  wrapAngle,
 } from '@light-lab/engine';
 import { useSyncExternalStore } from 'react';
 import { extentOf, type Point } from './bench/shapes';
@@ -90,12 +93,17 @@ function roundToHundredths(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+function clampPosition(value: number): number {
+  return Math.min(Math.max(value, fieldRanges.position.min), fieldRanges.position.max);
+}
+
+/** Rounds a placement and keeps it inside the scene's bounds, so a write never fails validation. */
 function roundPlacement<T extends SceneObject>(object: T): T {
   return {
     ...object,
-    x: roundToHundredths(object.x),
-    y: roundToHundredths(object.y),
-    angle: roundToHundredths(object.angle),
+    x: clampPosition(roundToHundredths(object.x)),
+    y: clampPosition(roundToHundredths(object.y)),
+    angle: wrapAngle(roundToHundredths(object.angle)),
   };
 }
 
@@ -195,6 +203,7 @@ export function createStore(initialScene: Scene) {
     },
 
     addObject(kind: ObjectKind): void {
+      if (state.scene.objects.length >= maxObjects) return;
       const id = nextObjectId(state.scene);
       const centre = { x: state.view.offsetX, y: state.view.offsetY };
       const object = roundPlacement(placedClear({ ...newObjects[kind], id }, state.scene, centre));
@@ -210,7 +219,9 @@ export function createStore(initialScene: Scene) {
       const objects = state.scene.objects.map((object) => {
         if (object.id !== id) return object;
         // Throws on a field that belongs to another kind instead of storing an invalid object.
-        return roundPlacement(parseSceneObject({ ...object, ...patch, kind: object.kind }));
+        const merged = { ...object, ...patch, kind: object.kind } as SceneObject;
+        const settled = roundPlacement(merged);
+        return parseSceneObject(settled);
       });
       if (options.continuesEdit && editOpen) {
         setState({ scene: replaceObjects(objects) });
@@ -237,6 +248,7 @@ export function createStore(initialScene: Scene) {
     duplicateObject(id: number): void {
       const original = state.scene.objects.find((object) => object.id === id);
       if (!original) return;
+      if (state.scene.objects.length >= maxObjects) return;
       const copyId = nextObjectId(state.scene);
       const beside = { x: original.x + duplicateOffset, y: original.y + duplicateOffset };
       const copy = roundPlacement({

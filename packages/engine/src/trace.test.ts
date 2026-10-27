@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { examples } from './examples';
 import { surfacesOf } from './geometry';
 import { refractiveIndex } from './materials';
-import { parseScene, type Scene, type SceneObject, type Settings } from './scene';
+import { parseScene, type Scene, type SceneObject, type Settings, wrapAngle } from './scene';
 import { followRays, fresnelReflectance, type TracedRay, trace } from './trace';
 
 const prism: SceneObject = {
@@ -27,8 +27,8 @@ function rayOntoPrismFace(incidence: number, settings: Partial<Settings>): Scene
     id: 2,
     x: middleX - 50 * Math.cos(inward),
     y: middleY - 50 * Math.sin(inward),
-    angle: (inward * 180) / Math.PI,
-    cone: 0,
+    angle: wrapAngle((inward * 180) / Math.PI),
+    cone: 1,
     rays: 1,
     spectrum: 587.56,
   };
@@ -145,7 +145,7 @@ describe('brightness with distance', () => {
       v: 2,
       settings: { brightness },
       objects: [
-        { kind: 'point', id: 1, x: 0, y: 0, angle: 0, cone: 60, rays: 1001, spectrum: 587.56 },
+        { kind: 'point', id: 1, x: 0, y: 0, angle: 0, cone: 60, rays: 201, spectrum: 587.56 },
         { kind: 'detector', id: 2, x: distance, y: 0, angle: 90, length: 20 },
       ],
     });
