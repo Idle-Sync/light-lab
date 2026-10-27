@@ -450,7 +450,7 @@ export const rayModelSections: RayModelSection[] = [
   {
     heading: 'Partial reflection',
     model:
-      'With Partial reflections on, every glass hit splits a ray in two, a transmitted and a reflected ray, sharing its light by the Fresnel equations. The Polarization switch picks the reflectance for s or p polarized light, or Unpolarized, the average of the two. With Partial reflections off, all light goes through, except where total internal reflection sends it back.',
+      'With Partial reflections on, every glass hit that lets light through splits a ray in two, a transmitted and a reflected ray, sharing its light by the Fresnel equations. The Polarization switch picks the reflectance for s or p polarized light, or Unpolarized, the average of the two. With Partial reflections off, all light goes through, except where total internal reflection sends it back.',
     assumes: 'Bare glass with no coating, and mirrors that reflect all of the light.',
   },
   {

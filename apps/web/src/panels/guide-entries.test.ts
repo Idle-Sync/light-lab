@@ -155,8 +155,7 @@ describe('rayModelSections', () => {
       'Partial reflections',
       'Polarization',
       'Unpolarized',
-      's',
-      'p',
+      's or p polarized',
     ]) {
       expect(text).toContain(words);
     }
