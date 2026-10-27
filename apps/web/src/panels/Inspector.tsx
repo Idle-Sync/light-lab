@@ -1,10 +1,8 @@
 import {
-  type EyeRow,
   type GridSettings,
   gridSizeRange,
   type LensObject,
   overlappingGlass,
-  pathLabel,
   type Scene,
   type SceneObject,
   type Settings,
@@ -12,7 +10,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SceneResults } from '../engine-worker';
 import { store, useAppState } from '../store';
-import { keptEyeRows } from './eye-rows';
+import { DetectorPanel } from './DetectorPanel';
+import { eyeReadouts } from './eye-readouts';
 import {
   type ChoiceField,
   type Field,
@@ -28,7 +27,7 @@ import {
   subtitleOf,
 } from './inspector-fields';
 import { objectReadouts } from './object-readouts';
-import { overlapWarning, percent, type Readout } from './readouts';
+import { overlapWarning, type Readout } from './readouts';
 
 const chipClass =
   'rounded-md border px-2.5 py-1 text-[13px] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
@@ -197,7 +196,10 @@ function Readouts(props: { readouts: Readout[] }) {
       <dl className="m-0 flex flex-col gap-1">
         {props.readouts.map((item) => (
           <div key={item.label} className="flex justify-between gap-3">
-            <dt className="text-graphite">{item.label}</dt>
+            <dt className="text-graphite">
+              {item.label}
+              <span className="block text-[12px]">{item.explanation}</span>
+            </dt>
             <dd className="m-0 text-right tabular-nums">
               {item.value}
               {item.theory && <span className="block text-graphite">{item.theory}</span>}
@@ -217,61 +219,6 @@ function Readouts(props: { readouts: Readout[] }) {
       </details>
     </>
   );
-}
-
-function eyeReadouts(
-  results: SceneResults | null,
-  eyeId: number,
-): { readouts: Readout[]; rows: EyeRowView[] } {
-  const analysis = results?.eye;
-  const assumes =
-    'Light paths are grouped by the surfaces they cross; powers are shares of one source.';
-  if (!analysis || analysis.eyeId !== eyeId || analysis.rows.length === 0) {
-    return { readouts: [{ label: 'Light into the pupil', value: 'None', assumes }], rows: [] };
-  }
-  const kept = keptEyeRows(analysis);
-  return {
-    readouts: [
-      {
-        label: 'Light into the pupil',
-        value: `${percent(analysis.totalIntoPupil)} of a source`,
-        assumes,
-      },
-      { label: 'Distinct light paths', value: String(kept.length), assumes },
-    ],
-    rows: kept.slice(0, 6).map(eyeRowView),
-  };
-}
-
-interface EyeRowView {
-  key: string;
-  label: string;
-  transmission: string;
-  color: string;
-  detail: string;
-}
-
-function eyeRowView(row: EyeRow): EyeRowView {
-  const { top } = row;
-  const distance = top.distance.toFixed(0);
-  const where =
-    top.kind === 'real'
-      ? `Real image ${distance} mm in front`
-      : top.kind === 'virtual'
-        ? `Virtual image, appears ${distance} mm away`
-        : top.kind === 'behind'
-          ? 'Still converging, would focus behind the eye'
-          : 'Image at infinity, rays arrive parallel';
-  const scale = 255 / Math.max(...row.color, 1e-12);
-  const [red, green, blue] = row.color.map((channel) => Math.round(channel * scale));
-  return {
-    // Two sources can share a path, so the path alone does not identify a row.
-    key: `${top.sourceId}|${row.path}`,
-    label: pathLabel(row.path),
-    transmission: percent(row.transmission),
-    color: `rgb(${red}, ${green}, ${blue})`,
-    detail: `${where}. ${percent(row.power)} of the source enters the pupil${top.visible ? '.' : ', outside the field of view.'}`,
-  };
 }
 
 function EyeViewSize() {
@@ -339,7 +286,7 @@ function ObjectPanel(props: { object: SceneObject; scene: Scene; results: SceneR
     object.id,
     (id) => scene.objects.find((other) => other.id === id)?.kind ?? object.kind,
   );
-  const eye = object.kind === 'eye' ? eyeReadouts(results, object.id) : null;
+  const eye = object.kind === 'eye' ? eyeReadouts(results?.eye ?? null, object.id) : null;
   const readouts =
     eye?.readouts ??
     objectReadouts(object, results?.trace.detectors[object.id], scene.settings.brightness);
@@ -357,6 +304,9 @@ function ObjectPanel(props: { object: SceneObject; scene: Scene; results: SceneR
         <p role="status" className="m-0 text-sodium">
           {warning}
         </p>
+      )}
+      {object.kind === 'detector' && (
+        <DetectorPanel length={object.length} reading={results?.trace.detectors[object.id]} />
       )}
       {object.kind === 'lens' && <FocalLengthRow lens={object} />}
       {kindFields[object.kind].map((field) => (

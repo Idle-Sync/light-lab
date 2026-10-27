@@ -6,11 +6,20 @@ export interface Readout {
   value: string;
   theory?: string;
   assumes: string;
+  /** One sentence for a beginner: what this number says about the light. */
+  explanation: string;
 }
 
-export function readout(label: string, value: string, assumes: string, theory?: string): Readout {
+export function readout(
+  label: string,
+  value: string,
+  assumes: string,
+  explanation: string,
+  theory?: string,
+): Readout {
   if (assumes === '') throw new Error(`Readout "${label}" needs an assumes line`);
-  return { label, value, theory, assumes };
+  if (explanation === '') throw new Error(`Readout "${label}" needs an explanation`);
+  return { label, value, theory, assumes, explanation };
 }
 
 /** A share of one source's power, with more digits as the share gets small. */
@@ -39,6 +48,7 @@ export function lensLabel(theory: number, measured: number | null): Readout {
     'Focal length at 587.6 nm',
     `${kind}, f = ${signedMillimetres(theory)}`,
     'Thick-lens formula for a biconvex lens in air; the traced value follows a ray near the axis, so it includes spherical aberration.',
+    'The distance from the lens at which parallel light comes to a point; a shorter focal length bends light more.',
     `thick-lens ${signedMillimetres(theory)}, traced${measured === null ? ': ' : ' '}${traced}`,
   );
 }
@@ -52,8 +62,15 @@ export function detectorReadout(
   brightness: Settings['brightness'],
 ): Readout {
   const assumes = brightness === '3d' ? rule3d : rule2d;
-  if (!reading || reading.power <= 0) return readout('Power', 'No light', assumes);
-  return readout('Power, share of one source', percent(reading.power), assumes);
+  if (!reading || reading.power <= 0) {
+    return readout('Power', 'No light', assumes, 'No ray from any source ends on this detector.');
+  }
+  return readout(
+    'Power, share of one source',
+    percent(reading.power),
+    assumes,
+    'How much of one source the detector catches; 100 % would be all of it.',
+  );
 }
 
 /** The warning for a glass object that overlaps another, or null when it overlaps nothing. */
