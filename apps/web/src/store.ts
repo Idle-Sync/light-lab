@@ -219,7 +219,8 @@ export function createStore(initialScene: Scene) {
       const objects = state.scene.objects.map((object) => {
         if (object.id !== id) return object;
         // Throws on a field that belongs to another kind instead of storing an invalid object.
-        const settled = roundPlacement({ ...object, ...patch, kind: object.kind });
+        const merged = { ...object, ...patch, kind: object.kind } as SceneObject;
+        const settled = roundPlacement(merged);
         return parseSceneObject(settled);
       });
       if (options.continuesEdit && editOpen) {
