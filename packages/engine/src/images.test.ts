@@ -222,9 +222,16 @@ describe('imagesOf in a crowded scene', () => {
   }
 
   it('stops at the arrow cap, imaging the first object before any other', () => {
+    // Light bouncing between two facing mirrors forms an image at every bounce, so the first
+    // object fills the arrow cap through its first two pairs, well inside the pair cap.
+    const facingEachOther: SceneObject[] = [
+      { kind: 'mirror', id: objectCount, x: 100, y: 0, angle: 90, length: 300 },
+      { kind: 'mirror', id: objectCount + 1, x: -100, y: 0, angle: 90, length: 300 },
+    ];
     const scene = sceneOf([
       ...extendedObjects(),
-      ...facingMirrors(objectCount, mirrorCount, -150, 300),
+      ...facingEachOther,
+      ...facingMirrors(objectCount + 2, mirrorCount - 2, -150, 300),
     ]);
     expect(scene.objects).toHaveLength(objectCount + mirrorCount);
     const arrows = imagesOf(scene);

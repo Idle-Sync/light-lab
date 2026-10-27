@@ -5,7 +5,7 @@ import { followRays, type TracedRay } from './trace';
 /** Most image arrows one scene shows. */
 export const maxImageArrows = 80;
 /** Most extended object and optic pairs one scene traces for images. */
-export const maxObjectOpticPairs = 100;
+export const maxObjectOpticPairs = 50;
 
 // An image farther than this from the last surface is treated as at infinity, as in eye.ts.
 const farthestImage = 20000;

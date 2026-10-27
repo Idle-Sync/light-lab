@@ -62,9 +62,9 @@ const benchWithDenseSource: Scene = {
 };
 
 /**
- * 250 extended objects and 250 mirrors, enough to reach both image caps. The first object sits
- * inside a ring of mirrors facing it; the others point away from the ring with one ray each, so
- * the untimed main trace stays light.
+ * 250 extended objects and 250 mirrors, enough to reach the cap on object and optic pairs. The
+ * first object sits inside a ring of mirrors facing it; the others point away from the ring with
+ * one ray each, so the untimed main trace stays light.
  */
 function imageCapObjects(): SceneObject[] {
   const objects: SceneObject[] = [
