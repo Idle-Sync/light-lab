@@ -1,3 +1,4 @@
+import { type Point, toBench } from './geometry';
 import { defaultSettings, type Scene, type SceneObject } from './scene';
 import { noHitLength } from './spatial-grid';
 import { followRays, type TracedRay } from './trace';
@@ -6,13 +7,14 @@ import { followRays, type TracedRay } from './trace';
 // bend stays well above rounding error.
 const paraxialHeight = 0.1;
 
+type Side = 'front' | 'back';
+
 /**
- * Effective focal length found by tracing a paraxial ray through the object, in mm:
- * positive when converging, negative when diverging, null when the object has none.
+ * The ray that leaves `object` after a paraxial ray arrives along its axis from `side`, in the
+ * object's own frame: its axis is the x axis and its front faces +x. Null when none leaves.
  */
-export function measuredFocalLength(object: SceneObject, nm: number): number | null {
-  if (object.kind !== 'lens' && object.kind !== 'arcMirror' && object.kind !== 'ball') return null;
-  // In the object's own frame its axis is the x axis and its front faces +x.
+function leavingParaxialRay(object: SceneObject, nm: number, side: Side): TracedRay | null {
+  const fromFront = side === 'front';
   const scene: Scene = {
     v: 2,
     settings: { ...defaultSettings, partialReflections: false },
@@ -21,9 +23,9 @@ export function measuredFocalLength(object: SceneObject, nm: number): number | n
       {
         kind: 'beam',
         id: -1,
-        x: 2000,
+        x: fromFront ? 2000 : -2000,
         y: paraxialHeight,
-        angle: 180,
+        angle: fromFront ? 180 : 0,
         width: 0,
         rays: 1,
         spectrum: nm,
@@ -41,7 +43,39 @@ export function measuredFocalLength(object: SceneObject, nm: number): number | n
   });
   const leaving = leavingRays[0];
   if (!leaving || leaving.depth === 0 || leaving.dy === 0) return null;
+  return leaving;
+}
+
+function hasFocus(object: SceneObject): boolean {
+  return object.kind === 'lens' || object.kind === 'arcMirror' || object.kind === 'ball';
+}
+
+/**
+ * Effective focal length found by tracing a paraxial ray through the object, in mm:
+ * positive when converging, negative when diverging, null when the object has none.
+ */
+export function measuredFocalLength(object: SceneObject, nm: number): number | null {
+  if (!hasFocus(object)) return null;
+  const leaving = leavingParaxialRay(object, nm, 'front');
+  if (!leaving) return null;
   // The leaving ray crosses the axis f/|dx| further on per unit of height, measured from the
   // principal plane: f = h / tan(angle to the axis).
   return (-paraxialHeight * Math.abs(leaving.dx)) / leaving.dy;
+}
+
+/**
+ * Bench points where light arriving along the axis comes to a focus, or seems to spread from
+ * when the object diverges it: one per side for lenses and balls, the front one for mirrors.
+ */
+export function focalPoints(object: SceneObject, nm: number): Point[] {
+  if (!hasFocus(object)) return [];
+  const sides: Side[] = object.kind === 'arcMirror' ? ['front'] : ['front', 'back'];
+  const points: Point[] = [];
+  for (const side of sides) {
+    const leaving = leavingParaxialRay(object, nm, side);
+    if (!leaving) continue;
+    const axisCrossing = leaving.x - (leaving.y * leaving.dx) / leaving.dy;
+    points.push(toBench(object, axisCrossing, 0));
+  }
+  return points;
 }

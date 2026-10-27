@@ -1,7 +1,13 @@
-import { examples, type Material } from '@light-lab/engine';
+import { examples, type Material, refractiveIndex, thickLensFocalLength } from '@light-lab/engine';
 import { describe, expect, it } from 'vitest';
 import { createStore, type Store } from '../store';
-import { physicalPatch, pickChip, sliderInput } from './inspector-fields';
+import {
+  focalLengthInput,
+  lensFocalLength,
+  physicalPatch,
+  pickChip,
+  sliderInput,
+} from './inspector-fields';
 
 function countUndoSteps(store: Store): number {
   let steps = 0;
@@ -72,6 +78,40 @@ describe('pickChip', () => {
     const off: Material = 'sf11';
     pickChip(false, off, (material) => store.updateObject(2, { material }));
     expect(store.getState().scene.objects[1]).toMatchObject({ material: 'sf11' });
+    expect(countUndoSteps(store)).toBe(1);
+  });
+});
+
+describe('focalLengthInput', () => {
+  function benchLens(store: Store) {
+    const lens = store.getState().scene.objects[1];
+    if (lens.kind !== 'lens') throw new Error('object 2 of the bench example is not a lens');
+    return lens;
+  }
+
+  // The number on the slider is the number the lens label and readouts then show.
+  it('gives the lens the focal length picked on the slider', () => {
+    const store = createStore(examples.bench);
+    focalLengthInput(store, 2, 80, { pointerHeld: false });
+    const lens = benchLens(store);
+    expect(lens.radius1).toBe(lens.radius2);
+    expect(lensFocalLength(lens)).toBeCloseTo(80, 1);
+    expect(thickLensFocalLength(lens, refractiveIndex(lens.material, 587.56))).toBeCloseTo(80, 1);
+  });
+
+  it('stores radii rounded to 0.01 mm so links stay short', () => {
+    const store = createStore(examples.bench);
+    focalLengthInput(store, 2, 73.3, { pointerHeld: false });
+    const lens = benchLens(store);
+    expect(Math.round(lens.radius1 * 100) / 100).toBe(lens.radius1);
+  });
+
+  it('makes one history entry for a thumb drag', () => {
+    const store = createStore(examples.bench);
+    for (let focal = 60; focal <= 70; focal += 2) {
+      focalLengthInput(store, 2, focal, { pointerHeld: true });
+    }
+    store.finishEdit();
     expect(countUndoSteps(store)).toBe(1);
   });
 });

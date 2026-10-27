@@ -1,9 +1,13 @@
 import {
   glasses,
+  type LensObject,
   type Material,
   type ObjectKind,
+  refractiveIndex,
   type SceneObject,
   type Spectrum,
+  symmetricLensRadius,
+  thickLensFocalLength,
 } from '@light-lab/engine';
 import type { Store } from '../store';
 
@@ -115,13 +119,7 @@ export const kindFields: Record<ObjectKind, Field[]> = {
     slider('Diameter', 'diameter', 4, 200, ' mm'),
     angle('Facing'),
   ],
-  lens: [
-    glass,
-    slider('Front radius R1', 'radius1', 10, 400, ' mm'),
-    slider('Back radius R2', 'radius2', 10, 400, ' mm'),
-    slider('Diameter', 'diameter', 4, 120, ' mm'),
-    angle('Axis angle'),
-  ],
+  lens: [glass, slider('Diameter', 'diameter', 4, 120, ' mm'), angle('Axis angle')],
   prism: [glass, slider('Side length', 'side', 10, 200, ' mm'), angle('Rotation')],
   ball: [glass, slider('Diameter', 'diameter', 2, 150, ' mm')],
   blocker: [slider('Length', 'length', 2, 300, ' mm'), angle('Angle')],
@@ -133,6 +131,48 @@ export const kindFields: Record<ObjectKind, Field[]> = {
     angle('Looking toward'),
   ],
 };
+
+/** The lens radii, shown under Advanced: the focal length slider sets both at once. */
+export const lensRadiusFields: SliderField[] = [
+  slider('Front radius R1', 'radius1', 10, 400, ' mm'),
+  slider('Back radius R2', 'radius2', 10, 400, ' mm'),
+];
+
+// The focal length the lens labels and readouts quote is the one at the helium d-line.
+const dLine = 587.56;
+
+export function lensFocalLength(lens: LensObject): number {
+  return thickLensFocalLength(lens, refractiveIndex(lens.material, dLine));
+}
+
+/** The focal lengths the radius range allows for this lens's glass and diameter, in mm. */
+export function lensFocalRange(lens: LensObject): { min: number; max: number } {
+  const n = refractiveIndex(lens.material, dLine);
+  const focalAt = (radius: number) =>
+    thickLensFocalLength(
+      { radius1: radius, radius2: radius, diameter: Math.min(lens.diameter, 1.96 * radius) },
+      n,
+    );
+  return { min: Math.ceil(focalAt(10)), max: Math.floor(focalAt(400)) };
+}
+
+/**
+ * Applies a focal length slider value: both radii become the one that gives that focal length,
+ * rounded to 0.01 mm. History merges like `sliderInput`.
+ */
+export function focalLengthInput(
+  store: Store,
+  id: number,
+  focal: number,
+  options: { pointerHeld: boolean },
+): void {
+  const lens = store.getState().scene.objects.find((candidate) => candidate.id === id);
+  if (lens?.kind !== 'lens') return;
+  const n = refractiveIndex(lens.material, dLine);
+  const radius = Math.round(symmetricLensRadius(focal, n, lens.diameter) * 100) / 100;
+  const patch = physicalPatch(lens, { radius1: radius, radius2: radius });
+  store.updateObject(id, patch, { continuesEdit: options.pointerHeld });
+}
 
 export function subtitleOf(object: SceneObject): string {
   if ('material' in object) return glasses[object.material as Material].label;

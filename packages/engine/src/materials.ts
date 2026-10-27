@@ -58,3 +58,34 @@ export function thickLensFocalLength(lens: LensShape, n: number): number {
       ((n - 1) * thickness) / (n * lens.radius1 * lens.radius2));
   return 1 / power;
 }
+
+// The inspector's radius sliders run over this range, in mm.
+const shortestRadius = 10;
+const longestRadius = 400;
+
+/** The diameter a lens keeps once its radii cap it, as the inspector does. */
+function cappedDiameter(radius: number, diameter: number): number {
+  return Math.min(diameter, 1.96 * radius);
+}
+
+/**
+ * The radius both faces of a biconvex lens need for the thick-lens focal length `focal`, in mm,
+ * found by bisection; held to the inspector's 10 to 400 mm radius range.
+ */
+export function symmetricLensRadius(focal: number, n: number, diameter: number): number {
+  const focalAt = (radius: number) =>
+    thickLensFocalLength(
+      { radius1: radius, radius2: radius, diameter: cappedDiameter(radius, diameter) },
+      n,
+    );
+  if (focal <= focalAt(shortestRadius)) return shortestRadius;
+  if (focal >= focalAt(longestRadius)) return longestRadius;
+  let low = shortestRadius;
+  let high = longestRadius;
+  for (let step = 0; step < 60; step += 1) {
+    const middle = (low + high) / 2;
+    if (focalAt(middle) < focal) low = middle;
+    else high = middle;
+  }
+  return (low + high) / 2;
+}

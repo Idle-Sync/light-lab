@@ -2,6 +2,7 @@ import {
   type DetectorReading,
   type EyeAnalysis,
   type EyeGroup,
+  focalPoints,
   type GridSettings,
   type RayBucket,
   refractiveIndex,
@@ -171,6 +172,7 @@ export function drawBench(context: BenchContext, frame: BenchFrame): void {
   drawLabels(context, frame, eyeAnalysis);
   if (eyeAnalysis) drawImageShareLabels(context, eyeAnalysis, view, size);
   const selected = scene.objects.find((object) => object.id === frame.selectedId);
+  if (selected) drawFocalPoints(context, selected, view, size);
   if (selected) drawRotateHandle(context, selected, view, size);
   drawEyePanel(context, frame, eyeAnalysis);
 }
@@ -749,6 +751,32 @@ function drawImageShareLabels(
     const anchor = benchToScreen({ x: top.image[0], y: top.image[1] }, view, size);
     const kind = top.kind === 'virtual' ? 'Virtual image' : 'Real image';
     context.fillText(`${kind}, ${formatPercent(row.transmission)}`, anchor.x + 8, anchor.y - 6);
+  }
+}
+
+/** A small cross and an F at each focal point of the selected lens, curved mirror or ball. */
+function drawFocalPoints(
+  context: BenchContext,
+  object: SceneObject,
+  view: View,
+  size: CanvasSize,
+): void {
+  const arm = 5;
+  context.strokeStyle = sodium;
+  context.fillStyle = sodium;
+  context.lineWidth = 1.5;
+  context.font = labelFont;
+  context.textAlign = 'center';
+  context.textBaseline = 'bottom';
+  for (const point of focalPoints(object, dLine)) {
+    const screen = benchToScreen(point, view, size);
+    context.beginPath();
+    context.moveTo(screen.x - arm, screen.y - arm);
+    context.lineTo(screen.x + arm, screen.y + arm);
+    context.moveTo(screen.x - arm, screen.y + arm);
+    context.lineTo(screen.x + arm, screen.y - arm);
+    context.stroke();
+    context.fillText('F', screen.x, screen.y - arm - 2);
   }
 }
 

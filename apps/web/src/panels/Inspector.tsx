@@ -2,6 +2,7 @@ import {
   type EyeRow,
   type GridSettings,
   gridSizeRange,
+  type LensObject,
   overlappingGlass,
   pathLabel,
   type Scene,
@@ -15,8 +16,12 @@ import { keptEyeRows } from './eye-rows';
 import {
   type ChoiceField,
   type Field,
+  focalLengthInput,
   kindFields,
   kindTitles,
+  lensFocalLength,
+  lensFocalRange,
+  lensRadiusFields,
   pickChip,
   type SliderField,
   sliderInput,
@@ -103,6 +108,68 @@ function SliderRow(props: { object: SceneObject; field: SliderField }) {
         }
       />
     </div>
+  );
+}
+
+function FocalLengthRow(props: { lens: LensObject }) {
+  const { lens } = props;
+  const inputId = `inspector-${lens.id}-focal`;
+  const focal = lensFocalLength(lens);
+  const range = lensFocalRange(lens);
+  const pointerHeld = useRef(false);
+
+  function releaseThumb(): void {
+    pointerHeld.current = false;
+    store.finishEdit();
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex justify-between">
+        <label htmlFor={inputId} className="text-graphite">
+          Focal length
+        </label>
+        <output htmlFor={inputId} className="tabular-nums">
+          {focal.toFixed(1)} mm
+        </output>
+      </div>
+      <input
+        id={inputId}
+        type="range"
+        min={range.min}
+        max={range.max}
+        step={0.5}
+        value={focal}
+        className="w-full accent-sodium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sodium"
+        onPointerDown={(event) => {
+          pointerHeld.current = true;
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerUp={releaseThumb}
+        onPointerCancel={releaseThumb}
+        onChange={(event) =>
+          focalLengthInput(store, lens.id, Number(event.target.value), {
+            pointerHeld: pointerHeld.current,
+          })
+        }
+      />
+      <span className="text-graphite">Sets both faces to the same curve.</span>
+    </div>
+  );
+}
+
+function LensRadii(props: { lens: LensObject }) {
+  return (
+    <details>
+      <summary className="cursor-pointer text-graphite focus-visible:outline-2 focus-visible:outline-sodium">
+        Advanced: surface radii
+      </summary>
+      <div className="mt-2 flex flex-col gap-3">
+        {lensRadiusFields.map((field) => (
+          <SliderRow key={field.key} object={props.lens} field={field} />
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -272,9 +339,11 @@ function ObjectPanel(props: { object: SceneObject; scene: Scene; results: SceneR
           {warning}
         </p>
       )}
+      {object.kind === 'lens' && <FocalLengthRow lens={object} />}
       {kindFields[object.kind].map((field) => (
         <FieldRow key={field.key} object={object} field={field} />
       ))}
+      {object.kind === 'lens' && <LensRadii lens={object} />}
       {object.kind === 'eye' && <SightLines on={scene.settings.sightLines} />}
       <Readouts readouts={readouts} />
       {eye && eye.rows.length > 0 && (

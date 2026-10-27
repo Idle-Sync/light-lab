@@ -485,6 +485,30 @@ describe('drawBench', () => {
     expect(context.spots).toHaveLength(1);
   });
 
+  it('marks the focal points of the selected lens', () => {
+    const context = new RecordingContext();
+    drawBench(context, {
+      scene: examples.bench,
+      selectedId: 2,
+      view: { scale: 2, offsetX: 0, offsetY: 0 },
+      results: null,
+      size: { width: 1200, height: 800 },
+    });
+    expect(context.texts.filter((text) => text.text === 'F')).toHaveLength(2);
+  });
+
+  it('marks no focal points for a selected object without one', () => {
+    const context = new RecordingContext();
+    drawBench(context, {
+      scene: examples.bench,
+      selectedId: 3,
+      view: { scale: 2, offsetX: 0, offsetY: 0 },
+      results: null,
+      size: { width: 1200, height: 800 },
+    });
+    expect(context.texts.filter((text) => text.text === 'F')).toHaveLength(0);
+  });
+
   it('draws the bench before any trace result arrives', () => {
     const context = new RecordingContext();
     drawBench(context, {
