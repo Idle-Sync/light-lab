@@ -13,6 +13,7 @@ import {
 } from '@light-lab/engine';
 import type { SceneResults } from '../engine-worker';
 import { analyzedEyeId, type View } from '../store';
+import { drawImageArrows, drawImageLabels } from './draw-images';
 import { faintestShownPower, spotAlpha, spotRadius, stripX } from './eye-strip';
 import {
   arcMirrorShapeOf,
@@ -148,7 +149,10 @@ function spectrumName(spectrum: Spectrum): string {
   return `${spectrum} nm`;
 }
 
-/** Draws one frame of the bench: grid, rays, objects, image markers, labels and eye strip. */
+/**
+ * Draws one frame of the bench: grid, rays, objects, the eye's image markers, image arrows,
+ * labels and eye strip.
+ */
 export function drawBench(context: BenchContext, frame: BenchFrame): void {
   const { scene, view, size, results } = frame;
   const eyeAnalysis = shownEyeAnalysis(frame);
@@ -172,9 +176,11 @@ export function drawBench(context: BenchContext, frame: BenchFrame): void {
     drawObject(context, object, pixel, object.id === frame.selectedId, detectors[object.id]);
   }
   if (eyeAnalysis) drawImageMarkers(context, eyeAnalysis, pixel, scene.settings.sightLines);
+  if (results) drawImageArrows(context, results.images, pixel);
   context.restore();
 
   drawLabels(context, frame, eyeAnalysis);
+  if (results) drawImageLabels(context, results.images, view, size);
   if (eyeAnalysis) drawImageShareLabels(context, eyeAnalysis, view, size);
   const selected = scene.objects.find((object) => object.id === frame.selectedId);
   if (selected) drawFocalPoints(context, selected, view, size);

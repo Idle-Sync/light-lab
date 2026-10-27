@@ -5,6 +5,8 @@ import {
   type EyeRow,
   examples,
   fieldRanges,
+  type ImageArrow,
+  imageLabel,
   type RayBucket,
   type Scene,
 } from '@light-lab/engine';
@@ -450,7 +452,7 @@ describe('drawBench', () => {
     ],
   };
 
-  function results(eye: EyeAnalysis | null): SceneResults {
+  function results(eye: EyeAnalysis | null, images: ImageArrow[] = []): SceneResults {
     const intensity = new Float64Array([0, 1, 2]);
     return {
       trace: {
@@ -467,8 +469,10 @@ describe('drawBench', () => {
         segmentCount: 1,
       },
       eye,
+      images,
       traceMs: 1,
       eyeMs: 1,
+      imagesMs: 1,
     };
   }
 
@@ -497,6 +501,63 @@ describe('drawBench', () => {
     expect(texts).toContain('What the eye sees');
     expect(texts).toContain('Virtual image, 50.0 %');
     expect(context.spots).toHaveLength(1);
+  });
+
+  describe('image arrows', () => {
+    const virtualImage: ImageArrow = {
+      sourceId: 13,
+      path: 'm0',
+      kind: 'virtual',
+      base: { x: 260, y: 0 },
+      tip: { x: 260, y: -20 },
+      baseFrom: { x: 160, y: 1 },
+      tipFrom: { x: 160, y: -9 },
+      blur: 0,
+      magnification: 1,
+    };
+    const realImage: ImageArrow = {
+      sourceId: 13,
+      path: 't0t1',
+      kind: 'real',
+      base: { x: 330, y: 0 },
+      tip: { x: 330, y: 12 },
+      baseFrom: { x: 41, y: 0 },
+      tipFrom: { x: 41, y: 0 },
+      blur: 0,
+      magnification: -0.6,
+    };
+
+    function drawWithImages(images: ImageArrow[]): RecordingContext {
+      const context = new RecordingContext();
+      drawBench(context, {
+        scene: everyKind,
+        selectedId: null,
+        view: { scale: 2, offsetX: 0, offsetY: 0 },
+        results: results(null, images),
+        size: { width: 1200, height: 800 },
+        eyeStripHeight: 60,
+      });
+      return context;
+    }
+
+    it('draws the virtual arrow dashed with extension lines and the real one solid, each labelled', () => {
+      const context = drawWithImages([virtualImage, realImage]);
+      const virtualArrow = strokeThrough(context, [260, 0], [260, -20]);
+      expect(virtualArrow?.dash.length).toBeGreaterThan(0);
+      expect(strokeThrough(context, [160, 1], [260, 0])?.dash.length).toBeGreaterThan(0);
+      expect(strokeThrough(context, [330, 0], [330, 12])?.dash).toEqual([]);
+      const texts = context.texts.map((text) => text.text);
+      expect(texts).toContain(imageLabel(virtualImage));
+      expect(texts).toContain(imageLabel(realImage));
+    });
+
+    it('draws no arrow and no image label without images', () => {
+      const context = drawWithImages([]);
+      expect(strokeThrough(context, [260, 0], [260, -20])).toBeUndefined();
+      expect(context.texts.some((text) => text.text.endsWith(' image, upright, same size'))).toBe(
+        false,
+      );
+    });
   });
 
   it('marks the focal points of the selected lens', () => {

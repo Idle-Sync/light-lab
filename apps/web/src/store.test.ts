@@ -221,8 +221,10 @@ describe('store edits', () => {
     const results = {
       trace: { buckets: {}, detectors: {}, segmentCount: 0 },
       eye: null,
+      images: [],
       traceMs: 1,
       eyeMs: 0,
+      imagesMs: 0,
     };
     store.setResults(results);
     store.setResults(results);

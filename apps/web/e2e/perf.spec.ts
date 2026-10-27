@@ -1,4 +1,4 @@
-import { examples, type Scene } from '@light-lab/engine';
+import { examples, type Scene, type SceneObject, wrapAngle } from '@light-lab/engine';
 import type { CDPSession, Page } from '@playwright/test';
 import { benchArea, expectSceneShown, sceneUrl, selectObject } from './bench';
 import { expect, test } from './test';
@@ -7,7 +7,7 @@ const throttleRate = 4;
 const warmUpTraces = 3;
 const measuredTraces = 5;
 
-type Timing = 'data-trace-ms' | 'data-eye-ms';
+type Timing = 'data-trace-ms' | 'data-eye-ms' | 'data-images-ms';
 
 function statusPill(page: Page) {
   return page.locator('[data-trace-count]');
@@ -62,6 +62,48 @@ const benchWithDenseSource: Scene = {
 };
 
 /**
+ * 250 extended objects and 250 mirrors, enough to reach both image caps. The first object sits
+ * inside a ring of mirrors facing it; the others point away from the ring with one ray each, so
+ * the untimed main trace stays light.
+ */
+function imageCapObjects(): SceneObject[] {
+  const objects: SceneObject[] = [
+    { kind: 'object', id: 0, x: 0, y: 0, angle: 0, height: 20, cone: 20, rays: 1, spectrum: 589 },
+  ];
+  for (let id = 1; id < 250; id += 1) {
+    const x = -700 - 30 * (id % 25);
+    const y = -150 + 30 * Math.floor(id / 25);
+    objects.push({
+      kind: 'object',
+      id,
+      x,
+      y,
+      angle: 180,
+      height: 20,
+      cone: 1,
+      rays: 1,
+      spectrum: 589,
+    });
+  }
+  for (let index = 0; index < 250; index += 1) {
+    const degrees = -150 + (300 * index) / 250;
+    const x = 400 * Math.cos((degrees * Math.PI) / 180);
+    const y = 400 * Math.sin((degrees * Math.PI) / 180);
+    objects.push({
+      kind: 'mirror',
+      id: 250 + index,
+      x,
+      y,
+      angle: wrapAngle(degrees + 90),
+      length: 5,
+    });
+  }
+  return objects;
+}
+
+const imageCapScene: Scene = { ...examples.bench, objects: imageCapObjects() };
+
+/**
  * The factor that turns the engine worker's timings into timings on a CPU `throttleRate` times
  * slower, after checking whether page throttling reaches the worker. Chromium throttles only a
  * page's main thread and refuses the command on worker targets ("Operation is only supported
@@ -101,6 +143,17 @@ test('the magnifier eye analysis stays inside its budget at a 4x slower CPU', as
   const eyeMs = (await medianTiming(page, 'data-eye-ms')) * slowdown;
   test.info().annotations.push({ type: 'magnifier eye', description: `${eyeMs.toFixed(1)} ms` });
   expect(eyeMs).toBeLessThan(100);
+});
+
+test('the image arrows of a full scene stay inside their budget at a 4x slower CPU', async ({
+  page,
+}) => {
+  const slowdown = await workerSlowdown(page, await page.context().newCDPSession(page));
+  // Nudging the first object (id 0) retraces the scene and finds its images again.
+  await openForNudging(page, imageCapScene, 0);
+  const imagesMs = (await medianTiming(page, 'data-images-ms')) * slowdown;
+  test.info().annotations.push({ type: 'image arrows', description: `${imagesMs.toFixed(1)} ms` });
+  expect(imagesMs).toBeLessThan(40);
 });
 
 test('panning and zooming redraw within a frame and never retrace', async ({ page }) => {

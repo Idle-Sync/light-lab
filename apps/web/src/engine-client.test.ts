@@ -7,8 +7,10 @@ function resultsFor(scene: Scene): SceneResults {
   return {
     trace: { buckets: {}, detectors: {}, segmentCount: scene.objects.length },
     eye: null,
+    images: [],
     traceMs: 0,
     eyeMs: 0,
+    imagesMs: 0,
   };
 }
 

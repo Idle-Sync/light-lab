@@ -34,8 +34,10 @@ function emptyTraceResults() {
   return {
     trace: { buckets: {}, detectors: {}, segmentCount: 0 },
     eye: null,
+    images: [],
     traceMs: 1,
     eyeMs: 0,
+    imagesMs: 0,
   };
 }
 
