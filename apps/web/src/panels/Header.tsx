@@ -73,6 +73,9 @@ export function Header() {
       </nav>
 
       <div className="flex items-center gap-1">
+        <Button type="button" variant="ghost" size="sm" onClick={store.clearScene}>
+          New
+        </Button>
         <Button type="button" variant="ghost" size="sm" disabled={!canUndo} onClick={store.undo}>
           Undo
         </Button>

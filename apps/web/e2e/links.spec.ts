@@ -36,7 +36,7 @@ test('the bench lens reads as a converging lens of the thick-lens focal length',
 
 test('two overlapping balls warn that inside and outside are undefined', async ({ page }) => {
   const overlapping: Scene = {
-    v: 1,
+    v: 2,
     settings: examples.ball.settings,
     objects: [
       { kind: 'ball', id: 1, x: 0, y: 0, angle: 0, diameter: 30, material: 'bk7' },
@@ -83,7 +83,7 @@ test('the copied link opens the same scene in a new page', async ({ page, contex
 });
 
 test('a link that is not a scene is reported and leaves the scene alone', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(await sceneUrl(examples.bench));
   await expectSceneShown(page, examples.bench);
   await page.evaluate(() => {
     location.hash = 'z.garbage';
@@ -110,12 +110,29 @@ test('the app runs when the browser blocks site storage', async ({ page }) => {
       },
     });
   });
-  await page.goto('/');
+  await page.goto(await sceneUrl(examples.bench));
   await expectSceneShown(page, examples.bench);
   await page.getByRole('button', { name: 'Add ruler' }).click();
   await expect(page.locator('#bench-description li')).toHaveCount(
     examples.bench.objects.length + 1,
   );
+});
+
+test('a first visit opens an empty bench with a hint on how to start', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#bench-description li')).toHaveCount(0);
+  await expect(page.getByText('The bench is empty')).toBeVisible();
+  await page.getByRole('button', { name: 'Add point source' }).click();
+  await expect(page.getByText('The bench is empty')).toBeHidden();
+});
+
+test('New empties the bench and Undo brings the scene back', async ({ page }) => {
+  await page.goto(await sceneUrl(examples.magnifier));
+  await expectSceneShown(page, examples.magnifier);
+  await page.getByRole('button', { name: 'New', exact: true }).click();
+  await expect(page.locator('#bench-description li')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expectSceneShown(page, examples.magnifier);
 });
 
 test('Share shows the link to copy by hand where there is no Clipboard API', async ({ page }) => {

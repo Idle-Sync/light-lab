@@ -1,5 +1,6 @@
 import {
-  examples,
+  defaultSettings,
+  type GridSettings,
   type ObjectKind,
   parseSceneObject,
   type Scene,
@@ -7,6 +8,7 @@ import {
   type Settings,
 } from '@light-lab/engine';
 import { useSyncExternalStore } from 'react';
+import { extentOf, type Point } from './bench/shapes';
 import type { SceneResults } from './engine-worker';
 
 export interface View {
@@ -73,6 +75,9 @@ const newObjects = {
 
 const historyLimit = 100;
 const duplicateOffset = 12;
+// Clear space kept between a new object and its neighbours, in mm.
+const placementGap = 10;
+const placementTries = 200;
 
 /** Rounds to 0.01 so scene links stay short and survive a round trip unchanged. */
 function roundToHundredths(value: number): number {
@@ -86,6 +91,39 @@ function roundPlacement<T extends SceneObject>(object: T): T {
     y: roundToHundredths(object.y),
     angle: roundToHundredths(object.angle),
   };
+}
+
+/** The nearest grid line to `value`, rounded to 0.01 like every stored position. */
+export function snapToGrid(value: number, size: number): number {
+  return roundToHundredths(Math.round(value / size) * size);
+}
+
+function snapPoint(point: Point, grid: GridSettings): Point {
+  if (!grid.snap) return point;
+  return { x: snapToGrid(point.x, grid.size), y: snapToGrid(point.y, grid.size) };
+}
+
+function isClear(object: SceneObject, others: SceneObject[]): boolean {
+  for (const other of others) {
+    const needed = extentOf(object) + extentOf(other) + placementGap;
+    if (Math.hypot(object.x - other.x, object.y - other.y) < needed) return false;
+  }
+  return true;
+}
+
+/**
+ * `object` moved to the first clear spot found stepping right from `centre`, on the grid when
+ * snapping is on; at `centre` when the bench is too crowded to find one.
+ */
+function placedClear(object: SceneObject, scene: Scene, centre: Point): SceneObject {
+  const grid = scene.settings.grid;
+  const step = grid.snap ? Math.max(grid.size, placementGap) : placementGap;
+  for (let tries = 0; tries < placementTries; tries += 1) {
+    const spot = snapPoint({ x: centre.x + tries * step, y: centre.y }, grid);
+    const placed = { ...object, ...spot };
+    if (isClear(placed, scene.objects)) return placed;
+  }
+  return { ...object, ...snapPoint(centre, grid) };
 }
 
 function nextObjectId(scene: Scene): number {
@@ -151,12 +189,8 @@ export function createStore(initialScene: Scene) {
 
     addObject(kind: ObjectKind): void {
       const id = nextObjectId(state.scene);
-      const object = roundPlacement({
-        ...newObjects[kind],
-        id,
-        x: state.view.offsetX,
-        y: state.view.offsetY,
-      });
+      const centre = { x: state.view.offsetX, y: state.view.offsetY };
+      const object = roundPlacement(placedClear({ ...newObjects[kind], id }, state.scene, centre));
       commitScene(replaceObjects([...state.scene.objects, object]), { selectedId: id });
     },
 
@@ -187,6 +221,10 @@ export function createStore(initialScene: Scene) {
       const objects = state.scene.objects.filter((object) => object.id !== id);
       const selectedId = state.selectedId === id ? null : state.selectedId;
       commitScene(replaceObjects(objects), { selectedId });
+    },
+
+    clearScene(): void {
+      commitScene(replaceObjects([]), { selectedId: null });
     },
 
     duplicateObject(id: number): void {
@@ -252,7 +290,7 @@ export function createStore(initialScene: Scene) {
 
 export type Store = ReturnType<typeof createStore>;
 
-export const store = createStore(examples.bench);
+export const store = createStore({ v: 2, settings: defaultSettings, objects: [] });
 
 /** Subscribes a component to one slice of the app state; `select` must return stored values. */
 export function useAppState<T>(select: (state: AppState) => T): T {

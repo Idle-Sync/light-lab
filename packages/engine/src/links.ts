@@ -1,5 +1,5 @@
 import { migrateScene } from './migrate';
-import { type Scene, SceneError } from './scene';
+import { defaultSettings, type Scene, SceneError, type Settings } from './scene';
 
 // A link is the URL fragment: "z." + base64url(deflate-raw(JSON)), or "j." + base64url(JSON).
 
@@ -10,9 +10,33 @@ const maxSceneBytes = 1024 * 1024;
 
 /** Encodes a scene as a compressed `z.` link. */
 export async function encodeSceneLink(scene: Scene): Promise<string> {
-  const json = new TextEncoder().encode(JSON.stringify(scene));
+  const linked = { ...scene, settings: settingsOffDefault(scene.settings) };
+  const json = new TextEncoder().encode(JSON.stringify(linked));
   const compressed = await pipeBytes(json, new CompressionStream('deflate-raw'));
   return `z.${toBase64Url(compressed)}`;
+}
+
+/** The settings that differ from their defaults; parsing a link fills the rest back in. */
+function settingsOffDefault(settings: Settings): Partial<Settings> {
+  const changed: Partial<Settings> = {};
+  if (settings.partialReflections !== defaultSettings.partialReflections) {
+    changed.partialReflections = settings.partialReflections;
+  }
+  if (settings.polarization !== defaultSettings.polarization) {
+    changed.polarization = settings.polarization;
+  }
+  if (settings.brightness !== defaultSettings.brightness) changed.brightness = settings.brightness;
+  const grid = settings.grid;
+  const defaultGrid = defaultSettings.grid;
+  if (
+    grid.show !== defaultGrid.show ||
+    grid.size !== defaultGrid.size ||
+    grid.snap !== defaultGrid.snap
+  ) {
+    changed.grid = grid;
+  }
+  if (settings.sightLines !== defaultSettings.sightLines) changed.sightLines = settings.sightLines;
+  return changed;
 }
 
 /** Decodes a `z.` or `j.` link, with or without the leading `#`; throws `SceneError`. */

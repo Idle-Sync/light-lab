@@ -8,6 +8,7 @@ import { ZoomControls } from './bench/ZoomControls';
 import { TooltipProvider } from './components/ui/tooltip';
 import { createEngineClient, startEngineWorker } from './engine-client';
 import { BenchDescription } from './panels/BenchDescription';
+import { EmptyBenchHint } from './panels/EmptyBenchHint';
 import { Header } from './panels/Header';
 import { Inspector } from './panels/Inspector';
 import { Toolbar } from './panels/Toolbar';
@@ -77,6 +78,7 @@ export function App() {
         <main className="relative min-h-0 flex-1">
           <BenchCanvas />
           <BenchDescription />
+          <EmptyBenchHint />
           <Toolbar />
           <Inspector />
           <ZoomControls />

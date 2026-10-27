@@ -32,7 +32,7 @@ function rayOntoPrismFace(incidence: number, settings: Partial<Settings>): Scene
     rays: 1,
     spectrum: 587.56,
   };
-  return parseScene({ v: 1, settings, objects: [prism, source] });
+  return parseScene({ v: 2, settings, objects: [prism, source] });
 }
 
 function drawnRays(scene: Scene): TracedRay[] {
@@ -92,7 +92,7 @@ describe('detector power', () => {
   it('does not depend on the number of drawn rays when nothing clips the fan', () => {
     const powerWith = (rays: number) =>
       detectorPower(
-        parseScene({ v: 1, objects: [{ ...source, cone: 20, rays }, lens, detector] }),
+        parseScene({ v: 2, objects: [{ ...source, cone: 20, rays }, lens, detector] }),
         3,
       );
     const fewRays = powerWith(11);
@@ -115,20 +115,20 @@ describe('detector power', () => {
   const wall: SceneObject = { kind: 'detector', id: 2, x: 20, y: 0, angle: 90, length: 200 };
 
   it('never exceeds 1 for an extended object, whose power is shared by its emitting points', () => {
-    const power = detectorPower(parseScene({ v: 1, objects: [object, wall] }), 2);
+    const power = detectorPower(parseScene({ v: 2, objects: [object, wall] }), 2);
     expect(power).toBeGreaterThan(0.99);
     // Summing equal shares can round one unit in the last place above 1.
     expect(power).toBeLessThanOrEqual(1 + 1e-12);
   });
 
   it('never exceeds 1 for a sensor close to an extended object with the 3D equivalent on', () => {
-    const scene = parseScene({ v: 1, settings: { brightness: '3d' }, objects: [object, wall] });
+    const scene = parseScene({ v: 2, settings: { brightness: '3d' }, objects: [object, wall] });
     expect(detectorPower(scene, 2)).toBeLessThanOrEqual(1);
   });
 
   it('never exceeds 1 for a sensor wider than its distance from a point source in 3D', () => {
     const scene = parseScene({
-      v: 1,
+      v: 2,
       settings: { brightness: '3d' },
       objects: [
         { kind: 'point', id: 1, x: 0, y: 0, angle: 0, cone: 60, rays: 101, spectrum: 587.56 },
@@ -142,7 +142,7 @@ describe('detector power', () => {
 describe('brightness with distance', () => {
   function readingAt(distance: number, brightness: Settings['brightness']): number {
     const scene = parseScene({
-      v: 1,
+      v: 2,
       settings: { brightness },
       objects: [
         { kind: 'point', id: 1, x: 0, y: 0, angle: 0, cone: 60, rays: 1001, spectrum: 587.56 },

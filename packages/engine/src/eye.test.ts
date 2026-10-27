@@ -19,7 +19,7 @@ describe('analyzeEye', () => {
         rays: 9,
         spectrum: 587.56,
       };
-      const analysis = analyzeEye(parseScene({ v: 1, objects: [object, eye] }), eye.id);
+      const analysis = analyzeEye(parseScene({ v: 2, objects: [object, eye] }), eye.id);
       const endPoint = (pointIndex: number): EyeGroup => {
         const group = analysis.groups.find((g) => g.pointIndex === pointIndex && g.path === '');
         if (!group) throw new Error(`no direct group for emitting point ${pointIndex}`);
@@ -43,7 +43,7 @@ describe('analyzeEye', () => {
         rays: 41,
         spectrum: 'white',
       };
-      const analysis = analyzeEye(parseScene({ v: 1, objects: [source, eye] }), eye.id);
+      const analysis = analyzeEye(parseScene({ v: 2, objects: [source, eye] }), eye.id);
       expect(analysis.groups.map((group) => group.nm).sort()).toEqual([
         400, 445, 490, 535, 580, 625, 670,
       ]);
@@ -54,7 +54,7 @@ describe('analyzeEye', () => {
   });
 
   it('refuses an eye id that is not in the scene', () => {
-    expect(() => analyzeEye(parseScene({ v: 1, objects: [eye] }), 4)).toThrow('no eye with id 4');
+    expect(() => analyzeEye(parseScene({ v: 2, objects: [eye] }), 4)).toThrow('no eye with id 4');
   });
 });
 

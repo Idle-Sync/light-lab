@@ -3,7 +3,7 @@ import { deflateRawSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { examples } from './examples';
 import { decodeSceneLink, encodeSceneLink } from './links';
-import { parseScene, SceneError } from './scene';
+import { parseScene, type Scene, SceneError } from './scene';
 
 function plainLink(json: string): string {
   return `j.${Buffer.from(json).toString('base64url')}`;
@@ -19,6 +19,24 @@ describe('scene links', () => {
     const link = await encodeSceneLink(examples.bench);
     expect(link.startsWith('z.')).toBe(true);
     expect(await decodeSceneLink(link)).toEqual(examples.bench);
+  });
+
+  // Settings at their defaults stay out of the link, so new settings do not lengthen old scenes.
+  it('keeps the link of the bench example under 500 characters', async () => {
+    expect((await encodeSceneLink(examples.bench)).length).toBeLessThan(500);
+  });
+
+  it('round-trips settings that differ from their defaults', async () => {
+    const scene: Scene = {
+      ...examples.bench,
+      settings: {
+        ...examples.bench.settings,
+        brightness: '3d',
+        grid: { show: false, size: 2.5, snap: true },
+        sightLines: false,
+      },
+    };
+    expect(await decodeSceneLink(await encodeSceneLink(scene))).toEqual(scene);
   });
 
   it('reads a link with the leading # of location.hash', async () => {
@@ -61,20 +79,29 @@ describe('scene links', () => {
     'decodes the sample link of version %s',
     async (version, link) => {
       const scene = await decodeSceneLink(link);
-      expect(String(scene.v)).toBe(version);
+      expect(scene.v).toBe(2);
       expect(scene).toEqual(parseScene(scene));
+      expect(version).toMatch(/^\d+$/);
     },
   );
 
   it('keeps a sample link for every shipped version', () => {
-    expect(Object.keys(sampleLinks)).toEqual(['1']);
+    expect(Object.keys(sampleLinks)).toEqual(['1', '2']);
+  });
+
+  it('keeps the version 2 bench link under 500 characters', () => {
+    expect(sampleLinks['2'].length).toBeLessThan(500);
+  });
+
+  it('keeps the version 2 sample equal to the bench example', async () => {
+    expect(await decodeSceneLink(sampleLinks['2'])).toEqual(examples.bench);
   });
 
   it('keeps the version 1 bench link under 500 characters', () => {
     expect(sampleLinks['1'].length).toBeLessThan(500);
   });
 
-  it('keeps the version 1 sample equal to the bench example', async () => {
+  it('opens the version 1 sample as the bench example', async () => {
     expect(await decodeSceneLink(sampleLinks['1'])).toEqual(examples.bench);
   });
 });

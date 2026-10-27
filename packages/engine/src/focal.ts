@@ -1,4 +1,4 @@
-import type { Scene, SceneObject } from './scene';
+import { defaultSettings, type Scene, type SceneObject } from './scene';
 import { noHitLength } from './spatial-grid';
 import { followRays, type TracedRay } from './trace';
 
@@ -14,8 +14,8 @@ export function measuredFocalLength(object: SceneObject, nm: number): number | n
   if (object.kind !== 'lens' && object.kind !== 'arcMirror' && object.kind !== 'ball') return null;
   // In the object's own frame its axis is the x axis and its front faces +x.
   const scene: Scene = {
-    v: 1,
-    settings: { partialReflections: false, polarization: 'unpolarized', brightness: '2d' },
+    v: 2,
+    settings: { ...defaultSettings, partialReflections: false },
     objects: [
       { ...object, x: 0, y: 0, angle: 0 },
       {

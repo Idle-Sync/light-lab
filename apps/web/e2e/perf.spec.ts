@@ -103,7 +103,7 @@ test('the magnifier eye analysis stays inside its budget at a 4x slower CPU', as
 
 test('panning and zooming redraw within a frame and never retrace', async ({ page }) => {
   const session = await page.context().newCDPSession(page);
-  await page.goto('/');
+  await page.goto(await sceneUrl(examples.bench));
   await expectSceneShown(page, examples.bench);
   await expect.poll(() => traceCount(page)).toBeGreaterThan(0);
   await throttle(session, throttleRate);

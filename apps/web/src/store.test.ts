@@ -1,6 +1,15 @@
-import { examples } from '@light-lab/engine';
+import { defaultSettings, examples, type Scene, type SceneObject } from '@light-lab/engine';
 import { describe, expect, it } from 'vitest';
-import { analyzedEyeId, createStore } from './store';
+import { extentOf } from './bench/shapes';
+import { analyzedEyeId, store as appStore, createStore, snapToGrid } from './store';
+
+function emptyScene(): Scene {
+  return { v: 2, settings: defaultSettings, objects: [] };
+}
+
+function distance(first: SceneObject, second: SceneObject): number {
+  return Math.hypot(first.x - second.x, first.y - second.y);
+}
 
 function countUndoSteps(store: ReturnType<typeof createStore>): number {
   let steps = 0;
@@ -100,6 +109,52 @@ describe('store edits', () => {
     expect(store.getState().scene).toEqual(examples.bench);
   });
 
+  // Objects stacked on one spot hide each other and cannot be picked apart by a beginner.
+  it('places each new object clear of the objects already on the bench', () => {
+    const store = createStore(emptyScene());
+    for (let added = 0; added < 4; added += 1) store.addObject('lens');
+    store.addObject('mirror');
+    store.addObject('eye');
+    const objects = store.getState().scene.objects;
+    for (const first of objects) {
+      for (const second of objects) {
+        if (first === second) continue;
+        expect(distance(first, second)).toBeGreaterThanOrEqual(extentOf(first) + extentOf(second));
+      }
+    }
+  });
+
+  it('places the first object at the centre of the view', () => {
+    const store = createStore(emptyScene());
+    store.setView({ offsetX: 40, offsetY: -20 });
+    store.addObject('point');
+    expect(store.getState().scene.objects[0]).toMatchObject({ x: 40, y: -20 });
+  });
+
+  it('places a new object on the grid when snapping is on', () => {
+    const store = createStore(emptyScene());
+    store.setSettings({ grid: { show: true, size: 25, snap: true } });
+    store.setView({ offsetX: 37.3, offsetY: -11.2 });
+    store.addObject('lens');
+    store.addObject('lens');
+    for (const object of store.getState().scene.objects) {
+      expect(Math.abs(object.x % 25)).toBe(0);
+      expect(Math.abs(object.y % 25)).toBe(0);
+    }
+  });
+
+  it('clears the bench in one step that undo brings back, keeping the settings', () => {
+    const store = createStore(examples.bench);
+    store.setSettings({ sightLines: false });
+    store.select(2);
+    store.clearScene();
+    expect(store.getState().scene.objects).toEqual([]);
+    expect(store.getState().scene.settings.sightLines).toBe(false);
+    expect(store.getState().selectedId).toBeNull();
+    store.undo();
+    expect(store.getState().scene.objects).toEqual(examples.bench.objects);
+  });
+
   it('duplicates an object beside the original under a new id', () => {
     const store = createStore(examples.bench);
     store.duplicateObject(2);
@@ -154,6 +209,26 @@ describe('store edits', () => {
     unsubscribe();
     store.select(2);
     expect(calls).toBe(1);
+  });
+});
+
+describe('first visit', () => {
+  // A newcomer starts on an empty bench; the examples stay one click away in the header.
+  it('opens an empty bench', () => {
+    expect(appStore.getState().scene.objects).toEqual([]);
+  });
+});
+
+describe('snapToGrid', () => {
+  it('rounds to the nearest grid line', () => {
+    expect(snapToGrid(12.4, 5)).toBe(10);
+    expect(snapToGrid(-12.6, 5)).toBe(-15);
+    expect(snapToGrid(0.26, 0.5)).toBe(0.5);
+  });
+
+  // 0.1 steps in binary leave 0.30000000000000004, which would lengthen every link.
+  it('returns values rounded to 0.01', () => {
+    expect(snapToGrid(0.29, 0.1)).toBe(0.3);
   });
 });
 

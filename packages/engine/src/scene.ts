@@ -115,20 +115,37 @@ export const sceneObjectSchema = v.variant('kind', [
   eyeSchema,
 ]);
 
+export const gridSizeRange = { min: 0.01, max: 500 };
+
+const gridSchema = v.strictObject({
+  show: v.optional(v.boolean(), true),
+  size: v.optional(
+    v.pipe(v.number(), v.minValue(gridSizeRange.min), v.maxValue(gridSizeRange.max)),
+    10,
+  ),
+  snap: v.optional(v.boolean(), false),
+});
+
 const settingsSchema = v.strictObject({
   partialReflections: v.optional(v.boolean(), true),
   polarization: v.optional(v.picklist(['unpolarized', 's', 'p']), 'unpolarized'),
   brightness: v.optional(v.picklist(['2d', '3d']), '2d'),
+  grid: v.optional(gridSchema, {}),
+  sightLines: v.optional(v.boolean(), true),
 });
 
 export const sceneSchema = v.strictObject({
-  v: v.literal(1),
+  v: v.literal(2),
   settings: v.optional(settingsSchema, {}),
   objects: v.array(sceneObjectSchema),
 });
 
 export type Scene = v.InferOutput<typeof sceneSchema>;
 export type Settings = Scene['settings'];
+export type GridSettings = Settings['grid'];
+
+/** The settings a scene gets when its JSON leaves them out. */
+export const defaultSettings: Settings = v.parse(settingsSchema, {});
 export type SceneObject = v.InferOutput<typeof sceneObjectSchema>;
 export type ObjectKind = SceneObject['kind'];
 export type Material = v.InferOutput<typeof materialSchema>;

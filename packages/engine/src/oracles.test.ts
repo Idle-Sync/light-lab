@@ -35,7 +35,7 @@ describe('thick lens oracle', () => {
     const [source, lens] = examples.bench.objects;
     if (source.kind !== 'point') throw new Error('the bench example no longer starts with a point');
     const scene = parseScene({
-      v: 1,
+      v: 2,
       objects: [{ ...source, spectrum: 587.56, rays: 3, cone: 2 }, lens],
     });
 
