@@ -1,4 +1,4 @@
-import type { LensObject, Material, Spectrum } from './scene';
+import { fieldRanges, type LensObject, type Material, type Spectrum } from './scene';
 
 type LensShape = Pick<LensObject, 'radius1' | 'radius2' | 'diameter'>;
 
@@ -59,9 +59,8 @@ export function thickLensFocalLength(lens: LensShape, n: number): number {
   return 1 / power;
 }
 
-// The inspector's radius sliders run over this range, in mm.
-const shortestRadius = 10;
-const longestRadius = 400;
+const shortestRadius = fieldRanges.lens.radius1.min;
+const longestRadius = fieldRanges.lens.radius1.max;
 
 /** The diameter a lens keeps once its radii cap it, as the inspector does. */
 function cappedDiameter(radius: number, diameter: number): number {

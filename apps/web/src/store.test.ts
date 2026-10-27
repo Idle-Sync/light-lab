@@ -1,4 +1,11 @@
-import { defaultSettings, examples, type Scene, type SceneObject } from '@light-lab/engine';
+import {
+  defaultSettings,
+  examples,
+  maxObjects,
+  parseScene,
+  type Scene,
+  type SceneObject,
+} from '@light-lab/engine';
 import { describe, expect, it } from 'vitest';
 import { extentOf } from './bench/shapes';
 import { analyzedEyeId, store as appStore, createStore, snapToGrid } from './store';
@@ -257,5 +264,49 @@ describe('analyzedEyeId', () => {
     expect(analyzedEyeId(twoEyes, 4)).toBe(4);
     expect(analyzedEyeId(twoEyes, 1)).toBe(3);
     expect(analyzedEyeId(examples.bench, null)).toBeNull();
+  });
+});
+
+describe('store writes stay inside the scene bounds', () => {
+  function storeWithRuler(angle: number) {
+    const ruler: SceneObject = { kind: 'ruler', id: 1, x: 0, y: 0, angle, length: 50 };
+    return createStore({ v: 2, settings: defaultSettings, objects: [ruler] });
+  }
+
+  it('stops a drag past x = 10000 at 10000', () => {
+    const store = storeWithRuler(0);
+    store.updateObject(1, { x: 12000 });
+    expect(store.getState().scene.objects[0].x).toBe(10000);
+  });
+
+  it('wraps a handle rotation of 250 degrees to -110', () => {
+    const store = storeWithRuler(0);
+    store.updateObject(1, { angle: 250 });
+    expect(store.getState().scene.objects[0].angle).toBe(-110);
+  });
+
+  it('wraps a keyboard step from 180 to -175', () => {
+    const store = storeWithRuler(180);
+    store.updateObject(1, { angle: 185 });
+    expect(store.getState().scene.objects[0].angle).toBe(-175);
+  });
+
+  it('keeps an angle of 180 when another field is edited', () => {
+    const store = storeWithRuler(180);
+    store.updateObject(1, { x: 5 });
+    expect(store.getState().scene.objects[0].angle).toBe(180);
+  });
+});
+
+describe('store object limit', () => {
+  it('ignores add and duplicate once the scene holds maxObjects objects', () => {
+    const ruler = { kind: 'ruler', x: 0, y: 0, angle: 0, length: 50 } as const;
+    const objects = Array.from({ length: maxObjects }, (_, index) => ({ ...ruler, id: index + 1 }));
+    const store = createStore({ v: 2, settings: defaultSettings, objects });
+    store.addObject('ruler');
+    store.duplicateObject(1);
+    expect(store.getState().scene.objects).toHaveLength(maxObjects);
+    expect(store.canUndo()).toBe(false);
+    parseScene(store.getState().scene);
   });
 });

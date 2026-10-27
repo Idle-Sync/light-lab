@@ -42,4 +42,26 @@ describe('migrateScene', () => {
   it('rejects JSON that is not an object', () => {
     expect(() => migrateScene(null)).toThrowError(SceneError);
   });
+
+  // Links, files and storage all return migrateScene(...), so one test covers the three.
+  describe('angles outside -180..180', () => {
+    const ruler = { kind: 'ruler', id: 1, x: 0, y: 0, length: 50 };
+
+    it('wraps a version 2 angle of 250 to -110', () => {
+      const scene = migrateScene({ v: 2, objects: [{ ...ruler, angle: 250 }] });
+      expect(scene.objects[0].angle).toBe(-110);
+    });
+
+    it('keeps an angle of 180', () => {
+      const scene = migrateScene({ v: 2, objects: [{ ...ruler, angle: 180 }] });
+      expect(scene.objects[0].angle).toBe(180);
+    });
+
+    it('still rejects an infinite angle, naming the field', () => {
+      const load = () =>
+        migrateScene({ v: 2, objects: [{ ...ruler, angle: Number.POSITIVE_INFINITY }] });
+      expect(load).toThrowError(SceneError);
+      expect(load).toThrowError(/^objects\.0\.angle: /);
+    });
+  });
 });
