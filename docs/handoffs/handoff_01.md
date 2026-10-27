@@ -26,7 +26,7 @@ CI was red on its first run (run 40334623127): the `check` job passed; the `e2e`
 | Item | Where |
 |---|---|
 | Chromium cannot throttle Web Workers, so worker timings in the speed test are scaled by the rate, not measured slowed | `apps/web/e2e/perf.spec.ts` |
-| Magnifier eye pass traces 18,325 segments (was 91,787) and the ball 28,884, both within the accuracy tolerances; cone rays are spaced 0.05° to 1°, 24 across the pupil, except behind an arc mirror, which keeps the dense 0.05° spacing |  `packages/engine/src/eye.ts`, `spatial-grid.ts` |
+| Magnifier eye pass traces 18,325 segments (was 91,787) and the ball 28,884, both within the accuracy tolerances; cone rays are spaced 0.05° to 1°, 24 across the pupil, except behind an arc mirror, which keeps the dense 0.05° spacing | `packages/engine/src/trace.ts` (`raysPerPoint`, `pupilAim`) |
 | The eye strip is drawn inside the bench canvas, not its own panel | `apps/web/src/bench/draw.ts` (`drawEyeStrip`) |
 | Product name: "Light Lab" is a working title | `prd.md` Open questions |
 | Two skills to request, if wanted: `/idleflow:skills-feedback "optics oracle check: run the physics oracles and report each result against the documented value"` and `/idleflow:skills-feedback "scene-link migration fixtures: add a sample versioned link per format change and verify every old link migrates"` | `docs/research/tooling.md` |
