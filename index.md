@@ -9,7 +9,7 @@ after every run so it never goes stale. Paths, not prose. Under 80 lines.
 - `progress.md` — what has landed and what is next
 - `.claude/conventions.md` — how code is written here, stack and library decisions, tooling
 - `CLAUDE.md` — working rules for every Claude Code session in this repo
-- `docs/handoffs/handoff_01.md` — what the next session does first
+- `docs/handoffs/handoff_02.md` — what the next session does first
 - `docs/sessions/s_0005.md` — the latest session note; `docs/sessions/` holds the rest
 
 ## Layout

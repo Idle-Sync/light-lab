@@ -11,15 +11,15 @@ landed, what it unblocks, what is still open. This file is the answer to "where 
 - Images without an eye: each extended object is imaged through mirrors, lenses and balls, virtual images dashed and real ones solid, with kind, orientation and size labels; a Show images switch saves in the scene, which is now scene format v3 (`packages/engine/src/images.ts`, `apps/web/src/bench/draw-images.ts`, `scene.ts`, `migrate.ts`). Capped at 50 object–optic pairs and 80 arrows.
 - Teaching detector with a verdict, a white-card strip, a brightness graph and a one-sentence explanation per readout (`apps/web/src/panels/detector-verdict.ts`, `detector-graph.ts`, `DetectorPanel.tsx`, `object-readouts.ts`); toolbar tooltips on every tool (`Toolbar.tsx`, `tool-descriptions.ts`); a Guide dialog from the header covering every tool and readout (`Guide.tsx`, `guide-entries.ts`).
 - Checks: `pnpm check` green (engine 172 tests, web 198); `pnpm e2e` 25 of 25 locally. The cap scene's images pass measures 12.8 ms locally, against a 40 ms CI budget.
-- Unblocks: milestone 3 (lens and mirror shapes). Milestone 2 is in the code but not yet pushed, deployed or tagged; the CI run on the merge commit is still to come.
-- Next: hide or relabel an intermediate image that a later optic intercepts (a two-lens line labels the first lens's image "Real image" when the second lens catches the light first); the magnifier and images budget tests run near Playwright's 30 s timeout on the GitHub runner; Vercel link, first deploy, then the `v0.1.0` tag for milestone 1 and `v0.2.0` for milestone 2 (human steps).
+- Unblocks: milestone 3 (lens and mirror shapes). Milestone 2 is pushed to `master` but not deployed or tagged. CI on 0527b77 (run 40515777853): `check` passed; `e2e` passed 24 of 25, failing "the engine stays inside its budget at a 4x slower CPU" on Playwright's 30 s test timeout (it also timed out once on the T1 branch and passed on rerun).
+- Next: hide or relabel an intermediate image that a later optic intercepts (a two-lens line labels the first lens's image "Real image" when the second lens catches the light first); make "the engine stays inside its budget" (`apps/web/e2e/perf.spec.ts`) finish inside 30 s on the GitHub runner so CI is green; Vercel link, first deploy, then the `v0.1.0` tag for milestone 1 and `v0.2.0` for milestone 2 (human steps).
 
 ## 2026-10-27 — Bounded scene fields and magnifier eye budget (run 20261027-122603-bound-scene-fields-eye-budget)
 
 - Every scene field is bounded to the inspector ranges by the schema, with at most 500 objects (`packages/engine/src/scene.ts`, `migrate.ts`); edits clamp in `apps/web/src/store.ts` and inspector values in `apps/web/src/panels/inspector-fields.ts`; the bench caps hatch marks and ruler ticks (`apps/web/src/bench/draw.ts`).
 - The eye pass stops emitting at its segment cap and aims cone rays at the pupil (`packages/engine/src/trace.ts`, `eye.ts`): the magnifier eye pass traces 18,325 segments (was 91,787) and its share of the source entering the pupil is 0.1687 (was 0.1690).
 - Magnifier eye annotation measured 16.0 to 16.4 ms at 4x CPU over three runs (CI measured 201.6 ms before the fix; the budget is 100 ms in the e2e assertion, 40 ms in the plan). Local `pnpm check` is green (engine 154 tests, web 151) and `pnpm e2e` passes 21 of 21.
-- Done locally, not yet proven on GitHub: the CI e2e job must pass on the next push. Vercel link and first deploy, and the `v0.1.0` tag, remain human steps (`docs/handoffs/handoff_01.md`).
+- CI passed both jobs on 9fc28d7 (run 40492890290). Vercel link and first deploy, and the `v0.1.0` tag, remain human steps (`docs/handoffs/handoff_01.md`).
 
 ## 2026-10-27 — Beginner bench, first half (Claude Code session)
 
