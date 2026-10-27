@@ -2,6 +2,7 @@ export * from './examples';
 export * from './eye';
 export * from './focal';
 export * from './geometry';
+export * from './images';
 export * from './links';
 export * from './materials';
 export * from './migrate';
