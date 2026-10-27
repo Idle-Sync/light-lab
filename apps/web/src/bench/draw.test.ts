@@ -280,6 +280,13 @@ describe('drawImageMarkers', () => {
     expect(backTrace?.dash.length).toBeGreaterThan(0);
   });
 
+  it('leaves the traced-back rays out when sight lines are off, keeping the image', () => {
+    const context = new RecordingContext();
+    drawImageMarkers(context, analysis, 0.5, false);
+    expect(strokeThrough(context, [100, 3], [10, 0])).toBeUndefined();
+    expect(strokeThrough(context, [10, 0], [10, 20])).toBeDefined();
+  });
+
   it('draws a real image chain solid', () => {
     const context = new RecordingContext();
     drawImageMarkers(context, analysis, 0.5);
@@ -474,6 +481,7 @@ describe('drawBench', () => {
     expect(texts).toContain('589.3 nm object');
     expect(texts.some((text) => /^f \d+\.\d mm$/.test(text))).toBe(true);
     expect(texts).toContain('What the eye sees');
+    expect(texts).toContain('Virtual image, 50.0 %');
     expect(context.spots).toHaveLength(1);
   });
 

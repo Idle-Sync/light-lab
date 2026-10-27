@@ -207,6 +207,44 @@ function eyeRowView(row: EyeRow): EyeRowView {
   };
 }
 
+function SightLines(props: { on: boolean }) {
+  return (
+    <>
+      <Chips
+        label="Sight lines"
+        options={[
+          { value: true, label: 'On' },
+          { value: false, label: 'Off' },
+        ]}
+        isOn={(value) => value === props.on}
+        onPick={(value) => store.setSettings({ sightLines: value === true })}
+      />
+      <details open>
+        <summary className="cursor-pointer text-graphite focus-visible:outline-2 focus-visible:outline-sodium">
+          How the eye sees
+        </summary>
+        <div className="mt-1 flex flex-col gap-1 text-graphite">
+          <p className="m-0">
+            The eye sends out no light. It catches the rays that reach its pupil and assumes they
+            came in straight lines, so it sees each point where those lines meet.
+          </p>
+          <p className="m-0">
+            <span className="text-chalk">Dashed sight lines</span> trace the rays back from the
+            pupil. Where they meet is a <span className="text-chalk">virtual image</span>: you see
+            the object there, but no light reaches that spot, so a screen there stays dark. A
+            magnifying glass works this way.
+          </p>
+          <p className="m-0">
+            A <span className="text-chalk">solid line</span> marks a{' '}
+            <span className="text-chalk">real image</span>: the light really meets there, and a
+            Detector placed there shows it.
+          </p>
+        </div>
+      </details>
+    </>
+  );
+}
+
 function ObjectPanel(props: { object: SceneObject; scene: Scene; results: SceneResults | null }) {
   const { object, scene, results } = props;
   const overlaps = useMemo(() => overlappingGlass(scene), [scene]);
@@ -237,6 +275,7 @@ function ObjectPanel(props: { object: SceneObject; scene: Scene; results: SceneR
       {kindFields[object.kind].map((field) => (
         <FieldRow key={field.key} object={object} field={field} />
       ))}
+      {object.kind === 'eye' && <SightLines on={scene.settings.sightLines} />}
       <Readouts readouts={readouts} />
       {eye && eye.rows.length > 0 && (
         <ul aria-label="Light paths" className="m-0 flex list-none flex-col gap-2 p-0">

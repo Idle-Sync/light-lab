@@ -165,7 +165,7 @@ export function drawBench(context: BenchContext, frame: BenchFrame): void {
   for (const object of scene.objects) {
     drawObject(context, object, pixel, object.id === frame.selectedId, detectors[object.id]);
   }
-  if (eyeAnalysis) drawImageMarkers(context, eyeAnalysis, pixel);
+  if (eyeAnalysis) drawImageMarkers(context, eyeAnalysis, pixel, scene.settings.sightLines);
   context.restore();
 
   drawLabels(context, frame, eyeAnalysis);
@@ -598,15 +598,16 @@ function chainKey(group: EyeGroup): string {
 }
 
 /**
- * Marks where the eye sees each image, in bench coordinates. Virtual images get dashed lines
- * traced back from where the outermost rays cross the pupil (`low` and `high`, bench points);
- * images of the points of one source along one path are joined, dashed when virtual and solid
- * when real.
+ * Marks where the eye sees each image, in bench coordinates. Virtual images get dashed sight
+ * lines traced back from where the outermost rays cross the pupil (`low` and `high`, bench
+ * points) unless `showSightLines` is off; images of the points of one source along one path are
+ * joined, dashed when virtual and solid when real.
  */
 export function drawImageMarkers(
   context: BenchContext,
   analysis: EyeAnalysis,
   pixel: number,
+  showSightLines = true,
 ): void {
   const strongest = strongestGroupPower(analysis);
   const chains = new Map<string, Array<{ group: EyeGroup; image: [number, number] }>>();
@@ -617,7 +618,7 @@ export function drawImageMarkers(
     if (!image || !hasMarkedImage(group, strongest)) continue;
     shown += 1;
     const color = wavelengthColor(group.nm);
-    if (group.kind === 'virtual' && group.low !== null && group.high !== null) {
+    if (showSightLines && group.kind === 'virtual' && group.low !== null && group.high !== null) {
       context.setLineDash([4 * pixel, 4 * pixel]);
       context.strokeStyle = rgba(color, 0.4);
       context.lineWidth = pixel;
@@ -746,7 +747,8 @@ function drawImageShareLabels(
     const top = row.top;
     if (!top.image || !hasMarkedImage(top, strongest)) continue;
     const anchor = benchToScreen({ x: top.image[0], y: top.image[1] }, view, size);
-    context.fillText(formatPercent(row.transmission), anchor.x + 8, anchor.y - 6);
+    const kind = top.kind === 'virtual' ? 'Virtual image' : 'Real image';
+    context.fillText(`${kind}, ${formatPercent(row.transmission)}`, anchor.x + 8, anchor.y - 6);
   }
 }
 
