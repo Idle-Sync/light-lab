@@ -3,7 +3,7 @@ import { examples } from './examples';
 import { surfacesOf } from './geometry';
 import { refractiveIndex } from './materials';
 import { parseScene, type Scene, type SceneObject, type Settings, wrapAngle } from './scene';
-import { followRays, fresnelReflectance, type TracedRay, trace } from './trace';
+import { emitRays, followRays, fresnelReflectance, type TracedRay, trace } from './trace';
 
 const prism: SceneObject = {
   kind: 'prism',
@@ -161,4 +161,65 @@ describe('brightness with distance', () => {
     const ratio = readingAt(200, '3d') / readingAt(100, '3d');
     expect(Math.abs(ratio / 0.25 - 1)).toBeLessThanOrEqual(0.03);
   });
+});
+
+describe('ray counts', () => {
+  const point: SceneObject = {
+    kind: 'point',
+    id: 1,
+    x: 0,
+    y: 0,
+    angle: 0,
+    cone: 360,
+    rays: 201,
+    spectrum: 'white',
+  };
+
+  it('the drawing pass never draws more rays than the inspector allows', () => {
+    const beam: SceneObject = {
+      kind: 'beam',
+      id: 2,
+      x: 0,
+      y: 0,
+      angle: 0,
+      width: 20,
+      rays: 61,
+      spectrum: 'white',
+    };
+    const object: SceneObject = {
+      kind: 'object',
+      id: 3,
+      x: 0,
+      y: 0,
+      angle: 0,
+      height: 20,
+      cone: 50,
+      rays: 61,
+      spectrum: 'white',
+    };
+    expect(emitRays({ ...point, rays: 50000 }, 'drawing')).toHaveLength(201 * 7);
+    expect(emitRays({ ...beam, rays: 50000 }, 'drawing')).toHaveLength(61 * 7);
+    // The drawing pass emits from both ends of an extended object.
+    expect(emitRays({ ...object, rays: 50000 }, 'drawing')).toHaveLength(61 * 7 * 2);
+  });
+
+  // Each source emits 1,407 rays when drawing and 7,000 for the eye, so the first 29 or 58
+  // sources already fill the pass's segment cap.
+  it.each([
+    { pass: 'drawing', sourceCount: 100 },
+    { pass: 'eye', sourceCount: 60 },
+  ] as const)(
+    'a scene past the segment cap never emits its last source ($pass pass)',
+    ({ pass, sourceCount }) => {
+      const objects: SceneObject[] = [];
+      for (let id = 0; id < sourceCount; id += 1) objects.push({ ...point, id });
+      const seen = new Set<number>();
+      followRays(parseScene({ v: 2, objects }), pass, {
+        onSegment: (ray) => seen.add(ray.sourceId),
+        onDetector: () => {},
+        onEye: () => {},
+      });
+      expect(seen.has(sourceCount - 1)).toBe(false);
+    },
+  );
 });

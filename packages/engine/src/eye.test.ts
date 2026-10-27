@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { examples } from './examples';
 import { analyzeEye, type EyeGroup, pathLabel } from './eye';
 import { parseScene, type SceneObject } from './scene';
+import { followRays } from './trace';
+
+vi.mock('./trace', async (importOriginal) => {
+  const trace = await importOriginal<typeof import('./trace')>();
+  return { ...trace, followRays: vi.fn(trace.followRays) };
+});
 
 const eye: SceneObject = { kind: 'eye', id: 9, x: 0, y: 0, angle: 180, pupil: 8, fieldOfView: 70 };
 
@@ -51,6 +58,82 @@ describe('analyzeEye', () => {
     }
     expect(totals[1]).toBeGreaterThan(totals[0]);
     expect(totals[2]).toBeGreaterThan(totals[1]);
+  });
+
+  it('the magnifier eye pass samples the pupil, not the whole cone', () => {
+    const scene = examples.magnifier;
+    const magnifierEye = scene.objects.find((object) => object.kind === 'eye');
+    if (magnifierEye?.kind !== 'eye') throw new Error('the magnifier example has no eye');
+    vi.mocked(followRays).mockClear();
+    analyzeEye(scene, magnifierEye.id);
+    expect(vi.mocked(followRays).mock.results[0].value).toBeLessThan(30000);
+
+    const raysFromPoint = new Map<number, number>();
+    followRays(
+      scene,
+      'eye',
+      {
+        onSegment(ray) {
+          if (ray.depth > 0) return;
+          raysFromPoint.set(ray.pointIndex, (raysFromPoint.get(ray.pointIndex) ?? 0) + 1);
+        },
+        onDetector() {},
+        onEye() {},
+      },
+      magnifierEye,
+    );
+    expect(Math.max(...raysFromPoint.values())).toBeLessThanOrEqual(250);
+  });
+
+  it('lets as much of the magnifier and the glass ball into the pupil as the dense pass did', () => {
+    // Totals measured with a ray every 0.05° of cone.
+    const magnifier = analyzeEye(examples.magnifier, 3);
+    const ball = analyzeEye(examples.ball, 3);
+    expect(Math.abs(magnifier.totalIntoPupil / 0.169 - 1)).toBeLessThanOrEqual(0.02);
+    expect(Math.abs(ball.totalIntoPupil / 0.1028 - 1)).toBeLessThanOrEqual(0.03);
+  });
+
+  it('keeps at least 20 rays on the direct path from a point 300 mm in front of the pupil', () => {
+    const source: SceneObject = {
+      kind: 'point',
+      id: 1,
+      x: -300,
+      y: 0,
+      angle: 0,
+      cone: 20,
+      rays: 41,
+      spectrum: 589.3,
+    };
+    const analysis = analyzeEye(parseScene({ v: 2, objects: [source, eye] }), eye.id);
+    expect(analysis.rows[0].path).toBe('');
+    expect(analysis.rows[0].rayCount).toBeGreaterThanOrEqual(20);
+  });
+
+  it('still sees the virtual image in a convex mirror', () => {
+    const scene = parseScene({
+      v: 2,
+      objects: [
+        { kind: 'point', id: 1, x: -100, y: -12, angle: 7, cone: 30, rays: 41, spectrum: 589.3 },
+        {
+          kind: 'arcMirror',
+          id: 2,
+          x: 0,
+          y: 0,
+          angle: 180,
+          radius: 20,
+          diameter: 30,
+          form: 'convex',
+        },
+        { kind: 'eye', id: 3, x: -100, y: 10, angle: 0, pupil: 10, fieldOfView: 70 },
+      ],
+    });
+    const analysis = analyzeEye(scene, 3);
+    // Image point and total measured with a ray every 0.05° of cone.
+    const { top } = analysis.rows[0];
+    expect(top.kind).toBe('virtual');
+    if (!top.image) throw new Error('the mirror path has no image point');
+    expect(Math.hypot(top.image[0] - 9, top.image[1] + 1.1)).toBeLessThanOrEqual(0.1);
+    expect(Math.abs(analysis.totalIntoPupil / 0.01667 - 1)).toBeLessThanOrEqual(0.03);
   });
 
   it('refuses an eye id that is not in the scene', () => {
