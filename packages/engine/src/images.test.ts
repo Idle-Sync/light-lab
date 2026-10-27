@@ -98,6 +98,26 @@ describe('imagesOf with a flat mirror', () => {
     expect(arrows[0].kind).toBe('virtual');
     expect(imageLabel(arrows[0])).toBe('Virtual image, upright, same size');
   });
+
+  it('gives a finite, non-negative blur for an exact image at any angle', () => {
+    const blurs: number[] = [];
+    for (const mirrorX of [50, 100, 333.3]) {
+      for (let angle = 0; angle < 360; angle += 5) {
+        const scene = sceneOf([
+          extendedObject({ angle }),
+          { kind: 'mirror', id: 2, x: mirrorX, y: 0, angle: 90, length: 60 },
+        ]);
+        for (const image of imagesOf(scene)) {
+          blurs.push(image.blur);
+        }
+      }
+    }
+    expect(blurs.length).toBeGreaterThan(0);
+    for (const blur of blurs) {
+      expect(Number.isFinite(blur)).toBe(true);
+      expect(blur).toBeGreaterThanOrEqual(0);
+    }
+  });
 });
 
 describe('imagesOf with a converging lens', () => {

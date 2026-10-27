@@ -554,9 +554,7 @@ describe('drawBench', () => {
     it('draws no arrow and no image label without images', () => {
       const context = drawWithImages([]);
       expect(strokeThrough(context, [260, 0], [260, -20])).toBeUndefined();
-      expect(context.texts.some((text) => text.text.endsWith(' image, upright, same size'))).toBe(
-        false,
-      );
+      expect(context.texts.some((text) => /^(Real|Virtual) image,/.test(text.text))).toBe(false);
     });
   });
 

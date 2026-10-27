@@ -149,6 +149,7 @@ function arrowsThrough(
       reflectionSign(path);
     const size = Math.hypot(imageVector.x, imageVector.y) / source.height;
     const rayCount = baseImage.rayCount + tipImage.rayCount;
+    const squaredSpread = (baseImage.squaredDistanceSum + tipImage.squaredDistanceSum) / rayCount;
     arrows.push({
       sourceId: source.id,
       path,
@@ -157,7 +158,8 @@ function arrowsThrough(
       tip: tipImage.point,
       baseFrom: baseImage.from,
       tipFrom: tipImage.from,
-      blur: Math.sqrt((baseImage.squaredDistanceSum + tipImage.squaredDistanceSum) / rayCount),
+      // Rays meeting exactly can round the spread just below zero.
+      blur: Math.sqrt(Math.max(0, squaredSpread)),
       magnification: orientation < 0 ? -size : size,
     });
   }
