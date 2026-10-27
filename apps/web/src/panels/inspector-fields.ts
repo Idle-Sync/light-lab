@@ -1,7 +1,9 @@
 import {
+  fieldRanges,
   glasses,
   type LensObject,
   type Material,
+  type NumberRange,
   type ObjectKind,
   refractiveIndex,
   type SceneObject,
@@ -30,19 +32,12 @@ export interface ChoiceField {
 
 export type Field = SliderField | ChoiceField;
 
-function slider(
-  label: string,
-  key: string,
-  min: number,
-  max: number,
-  unit = '',
-  step = 1,
-): SliderField {
-  return { type: 'slider', label, key, min, max, step, unit };
+function slider(label: string, key: string, range: NumberRange, unit = '', step = 1): SliderField {
+  return { type: 'slider', label, key, min: range.min, max: range.max, step, unit };
 }
 
 function angle(label: string): SliderField {
-  return slider(label, 'angle', -180, 180, '°');
+  return slider(label, 'angle', fieldRanges.angle, '°');
 }
 
 const glass: ChoiceField = {
@@ -87,24 +82,24 @@ export const kindTitles: Record<ObjectKind, string> = {
 export const kindFields: Record<ObjectKind, Field[]> = {
   point: [
     spectrum,
-    slider('Rays per wavelength', 'rays', 1, 201, '', 2),
-    slider('Cone angle', 'cone', 1, 360, '°'),
+    slider('Rays per wavelength', 'rays', fieldRanges.point.rays, '', 2),
+    slider('Cone angle', 'cone', fieldRanges.point.cone, '°'),
     angle('Direction'),
   ],
   beam: [
     spectrum,
-    slider('Rays per wavelength', 'rays', 1, 61, '', 2),
-    slider('Beam width', 'width', 1, 120, ' mm'),
+    slider('Rays per wavelength', 'rays', fieldRanges.beam.rays, '', 2),
+    slider('Beam width', 'width', fieldRanges.beam.width, ' mm'),
     angle('Direction'),
   ],
   object: [
     spectrum,
-    slider('Height', 'height', 2, 150, ' mm'),
-    slider('Rays drawn per point', 'rays', 1, 61, '', 2),
-    slider('Cone angle', 'cone', 1, 180, '°'),
+    slider('Height', 'height', fieldRanges.object.height, ' mm'),
+    slider('Rays drawn per point', 'rays', fieldRanges.object.rays, '', 2),
+    slider('Cone angle', 'cone', fieldRanges.object.cone, '°'),
     angle('Direction'),
   ],
-  mirror: [slider('Length', 'length', 5, 300, ' mm'), angle('Angle')],
+  mirror: [slider('Length', 'length', fieldRanges.mirror.length, ' mm'), angle('Angle')],
   arcMirror: [
     {
       type: 'choice',
@@ -115,28 +110,32 @@ export const kindFields: Record<ObjectKind, Field[]> = {
         { value: 'convex', label: 'Convex' },
       ],
     },
-    slider('Radius of curvature', 'radius', 20, 600, ' mm'),
-    slider('Diameter', 'diameter', 4, 200, ' mm'),
+    slider('Radius of curvature', 'radius', fieldRanges.arcMirror.radius, ' mm'),
+    slider('Diameter', 'diameter', fieldRanges.arcMirror.diameter, ' mm'),
     angle('Facing'),
   ],
-  lens: [glass, slider('Diameter', 'diameter', 4, 120, ' mm'), angle('Axis angle')],
-  prism: [glass, slider('Side length', 'side', 10, 200, ' mm'), angle('Rotation')],
-  ball: [glass, slider('Diameter', 'diameter', 2, 150, ' mm')],
-  blocker: [slider('Length', 'length', 2, 300, ' mm'), angle('Angle')],
-  detector: [slider('Length', 'length', 2, 300, ' mm'), angle('Angle')],
-  ruler: [slider('Length', 'length', 1, 500, ' mm', 0.5), angle('Angle')],
+  lens: [
+    glass,
+    slider('Diameter', 'diameter', fieldRanges.lens.diameter, ' mm'),
+    angle('Axis angle'),
+  ],
+  prism: [glass, slider('Side length', 'side', fieldRanges.prism.side, ' mm'), angle('Rotation')],
+  ball: [glass, slider('Diameter', 'diameter', fieldRanges.ball.diameter, ' mm')],
+  blocker: [slider('Length', 'length', fieldRanges.blocker.length, ' mm'), angle('Angle')],
+  detector: [slider('Length', 'length', fieldRanges.detector.length, ' mm'), angle('Angle')],
+  ruler: [slider('Length', 'length', fieldRanges.ruler.length, ' mm', 0.5), angle('Angle')],
   eye: [
     // A human pupil opens from about 2 mm in bright light to 8 mm in the dark.
-    slider('Pupil diameter', 'pupil', 1, 10, ' mm'),
-    slider('Field of view', 'fieldOfView', 10, 170, '°'),
+    slider('Pupil diameter', 'pupil', fieldRanges.eye.pupil, ' mm'),
+    slider('Field of view', 'fieldOfView', fieldRanges.eye.fieldOfView, '°'),
     angle('Looking toward'),
   ],
 };
 
 /** The lens radii, shown under Advanced: the focal length slider sets both at once. */
 export const lensRadiusFields: SliderField[] = [
-  slider('Front radius R1', 'radius1', 10, 400, ' mm'),
-  slider('Back radius R2', 'radius2', 10, 400, ' mm'),
+  slider('Front radius R1', 'radius1', fieldRanges.lens.radius1, ' mm'),
+  slider('Back radius R2', 'radius2', fieldRanges.lens.radius2, ' mm'),
 ];
 
 // The focal length the lens labels and readouts quote is the one at the helium d-line.
@@ -154,7 +153,10 @@ export function lensFocalRange(lens: LensObject): { min: number; max: number } {
       { radius1: radius, radius2: radius, diameter: Math.min(lens.diameter, 1.96 * radius) },
       n,
     );
-  return { min: Math.ceil(focalAt(10)), max: Math.floor(focalAt(400)) };
+  return {
+    min: Math.ceil(focalAt(fieldRanges.lens.radius1.min)),
+    max: Math.floor(focalAt(fieldRanges.lens.radius1.max)),
+  };
 }
 
 /**

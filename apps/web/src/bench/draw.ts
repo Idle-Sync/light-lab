@@ -87,6 +87,8 @@ const labelFont = '500 12px "Instrument Sans Variable", system-ui, sans-serif';
 const dLine = 587.56;
 // Images fainter than this share of the strongest one are left off the bench.
 const faintestImageShare = 1e-4;
+// A mirror's hatching and a ruler's ticks stop here, so an object far past the sliders cannot stall a frame.
+export const maxHatchMarks = 2000;
 
 /** Display colour of a wavelength in nm, dimmed toward the ends of the visible range. */
 export function wavelengthColor(nm: number): Rgb {
@@ -403,7 +405,7 @@ function drawGlass(
   context.stroke();
 }
 
-function drawArcMirror(
+export function drawArcMirror(
   context: BenchContext,
   mirror: Extract<SceneObject, { kind: 'arcMirror' }>,
   pixel: number,
@@ -411,7 +413,10 @@ function drawArcMirror(
 ): void {
   const arc = arcMirrorShapeOf(mirror);
   const backSide = mirror.form === 'concave' ? 1 : -1;
-  const hatchCount = Math.max(4, Math.round((arc.radius * 2 * arc.halfAngle) / pixel / 7));
+  const hatchCount = Math.min(
+    maxHatchMarks - 1,
+    Math.max(4, Math.round((arc.radius * 2 * arc.halfAngle) / pixel / 7)),
+  );
   context.lineWidth = pixel;
   context.strokeStyle = 'rgba(213,219,228,0.35)';
   context.beginPath();
@@ -482,7 +487,7 @@ function drawSource(
   context.stroke();
 }
 
-function drawMirrorHatching(
+export function drawMirrorHatching(
   context: BenchContext,
   mirror: Extract<SceneObject, { kind: 'mirror' }>,
   pixel: number,
@@ -490,7 +495,9 @@ function drawMirrorHatching(
   context.lineWidth = pixel;
   context.strokeStyle = 'rgba(213,219,228,0.35)';
   context.beginPath();
-  for (let along = -mirror.length / 2; along <= mirror.length / 2; along += 7 * pixel) {
+  const markCount = Math.min(maxHatchMarks, Math.floor(mirror.length / (7 * pixel)) + 1);
+  for (let mark = 0; mark < markCount; mark += 1) {
+    const along = -mirror.length / 2 + mark * 7 * pixel;
     const start = toBench(mirror, along, 0);
     const end = toBench(mirror, along - 3 * pixel, 5 * pixel);
     context.moveTo(start.x, start.y);
@@ -535,7 +542,7 @@ function drawDetectorBins(
   context.lineCap = 'round';
 }
 
-function drawRulerTicks(
+export function drawRulerTicks(
   context: BenchContext,
   ruler: Extract<SceneObject, { kind: 'ruler' }>,
   pixel: number,
@@ -545,7 +552,9 @@ function drawRulerTicks(
   context.lineWidth = pixel;
   context.strokeStyle = 'rgba(255,255,255,0.55)';
   context.beginPath();
-  for (let along = 0; along <= ruler.length + 1e-9; along += tickSpacing) {
+  const tickCount = Math.min(maxHatchMarks, Math.floor((ruler.length + 1e-9) / tickSpacing) + 1);
+  for (let tick = 0; tick < tickCount; tick += 1) {
+    const along = tick * tickSpacing;
     const tickLength = Math.abs(along % 50) < 1e-9 ? 8 : 4;
     const start = toBench(ruler, -ruler.length / 2 + along, 0);
     const end = toBench(ruler, -ruler.length / 2 + along, tickLength * pixel);

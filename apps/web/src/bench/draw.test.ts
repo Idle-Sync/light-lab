@@ -4,6 +4,7 @@ import {
   type EyeGroup,
   type EyeRow,
   examples,
+  fieldRanges,
   type RayBucket,
   type Scene,
 } from '@light-lab/engine';
@@ -11,12 +12,16 @@ import { describe, expect, it } from 'vitest';
 import type { SceneResults } from '../engine-worker';
 import {
   type BenchContext,
+  drawArcMirror,
   drawBench,
   drawEyeStrip,
   drawGrid,
   drawImageMarkers,
+  drawMirrorHatching,
   drawRays,
+  drawRulerTicks,
   formatPercent,
+  maxHatchMarks,
 } from './draw';
 import { faintestShownPower, spotAlpha, spotRadius, stripX } from './eye-strip';
 import { degrees, radians } from './shapes';
@@ -531,5 +536,94 @@ describe('drawBench', () => {
       eyeStripHeight: 60,
     });
     expect(context.strokes.length).toBeGreaterThan(0);
+  });
+});
+
+describe('marks past the inspector range', () => {
+  const pixel = 1 / 40;
+
+  function marksDrawn(context: RecordingContext): number {
+    let marks = 0;
+    for (const stroke of context.strokes) marks += stroke.points.length / 2;
+    return marks;
+  }
+
+  it('caps hatch marks and ruler ticks for objects past the inspector range', () => {
+    const mirror = { id: 1, kind: 'mirror', x: 0, y: 0, angle: 0, length: 1e4 } as const;
+    const arcMirror = {
+      id: 2,
+      kind: 'arcMirror',
+      x: 0,
+      y: 0,
+      angle: 0,
+      radius: 1e4,
+      diameter: 1e4,
+      form: 'concave',
+    } as const;
+    const ruler = { id: 3, kind: 'ruler', x: 0, y: 0, angle: 0, length: 1e5 } as const;
+    const flat = new RecordingContext();
+    drawMirrorHatching(flat, mirror, pixel);
+    const curved = new RecordingContext();
+    drawArcMirror(curved, arcMirror, pixel, false);
+    const ticks = new RecordingContext();
+    drawRulerTicks(ticks, ruler, pixel);
+    expect(marksDrawn(flat)).toBeLessThanOrEqual(maxHatchMarks);
+    expect(marksDrawn(curved)).toBeLessThanOrEqual(maxHatchMarks);
+    expect(marksDrawn(ticks)).toBeLessThanOrEqual(maxHatchMarks);
+  });
+
+  it('keeps the 7 px hatch spacing for a mirror inside the inspector range', () => {
+    const mirror = { id: 1, kind: 'mirror', x: 0, y: 0, angle: 0, length: 300 } as const;
+    const context = new RecordingContext();
+    drawMirrorHatching(context, mirror, pixel);
+    expect(marksDrawn(context)).toBe(Math.floor(300 / (7 * pixel)) + 1);
+  });
+
+  it('draws a scene with every field at its maximum', () => {
+    const at = { x: 0, y: 0, angle: 180 };
+    const scene: Scene = {
+      v: 2,
+      settings: examples.bench.settings,
+      objects: [
+        { id: 1, kind: 'point', ...at, cone: 360, rays: 201, spectrum: 'white' },
+        { id: 2, kind: 'beam', ...at, width: 120, rays: 61, spectrum: 'white' },
+        { id: 3, kind: 'object', ...at, height: 150, cone: 180, rays: 61, spectrum: 'white' },
+        { id: 4, kind: 'mirror', ...at, length: fieldRanges.mirror.length.max },
+        {
+          id: 5,
+          kind: 'arcMirror',
+          ...at,
+          radius: fieldRanges.arcMirror.radius.max,
+          diameter: fieldRanges.arcMirror.diameter.max,
+          form: 'concave',
+        },
+        {
+          id: 6,
+          kind: 'lens',
+          ...at,
+          radius1: fieldRanges.lens.radius1.max,
+          radius2: fieldRanges.lens.radius2.max,
+          diameter: fieldRanges.lens.diameter.max,
+          material: 'sf11',
+        },
+        { id: 7, kind: 'prism', ...at, side: fieldRanges.prism.side.max, material: 'bk7' },
+        { id: 8, kind: 'ball', ...at, diameter: fieldRanges.ball.diameter.max, material: 'silica' },
+        { id: 9, kind: 'blocker', ...at, length: fieldRanges.blocker.length.max },
+        { id: 10, kind: 'detector', ...at, length: fieldRanges.detector.length.max },
+        { id: 11, kind: 'ruler', ...at, length: fieldRanges.ruler.length.max },
+        { id: 12, kind: 'eye', ...at, pupil: 10, fieldOfView: 170 },
+      ],
+    };
+    const context = new RecordingContext();
+    drawBench(context, {
+      scene,
+      selectedId: 12,
+      view: { scale: 40, offsetX: 0, offsetY: 0 },
+      results: null,
+      size: { width: 1200, height: 800 },
+      eyeStripHeight: 60,
+    });
+    expect(context.strokes.length).toBeGreaterThan(0);
+    expect(context.strokes.length).toBeLessThan(200);
   });
 });
