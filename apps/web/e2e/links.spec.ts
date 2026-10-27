@@ -36,7 +36,7 @@ test('the bench lens reads as a converging lens of the thick-lens focal length',
 
 test('two overlapping balls warn that inside and outside are undefined', async ({ page }) => {
   const overlapping: Scene = {
-    v: 2,
+    v: 3,
     settings: examples.ball.settings,
     objects: [
       { kind: 'ball', id: 1, x: 0, y: 0, angle: 0, diameter: 30, material: 'bk7' },

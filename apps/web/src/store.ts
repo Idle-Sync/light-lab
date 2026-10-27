@@ -313,7 +313,7 @@ export function createStore(initialScene: Scene) {
 
 export type Store = ReturnType<typeof createStore>;
 
-export const store = createStore({ v: 2, settings: defaultSettings, objects: [] });
+export const store = createStore({ v: 3, settings: defaultSettings, objects: [] });
 
 /** Subscribes a component to one slice of the app state; `select` must return stored values. */
 export function useAppState<T>(select: (state: AppState) => T): T {

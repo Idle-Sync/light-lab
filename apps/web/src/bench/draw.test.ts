@@ -582,7 +582,7 @@ describe('marks past the inspector range', () => {
   it('draws a scene with every field at its maximum', () => {
     const at = { x: 0, y: 0, angle: 180 };
     const scene: Scene = {
-      v: 2,
+      v: 3,
       settings: examples.bench.settings,
       objects: [
         { id: 1, kind: 'point', ...at, cone: 360, rays: 201, spectrum: 'white' },

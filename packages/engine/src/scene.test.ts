@@ -17,19 +17,21 @@ describe('parseScene', () => {
   });
 
   it('fills missing settings with their defaults', () => {
-    const scene = parseScene({ v: 2, objects: [] });
+    const scene = parseScene({ v: 3, objects: [] });
+    expect(scene.settings.showImages).toBe(true);
     expect(scene.settings).toEqual({
       partialReflections: true,
       polarization: 'unpolarized',
       brightness: '2d',
       grid: { show: true, size: 10, snap: false },
       sightLines: true,
+      showImages: true,
     });
   });
 
   // A link with a microscopic grid would otherwise make the bench draw millions of lines.
   it.each([0.001, 0, -5, 10_000])('rejects a grid size of %s mm', (size) => {
-    const parse = () => parseScene({ v: 2, settings: { grid: { size } }, objects: [] });
+    const parse = () => parseScene({ v: 3, settings: { grid: { size } }, objects: [] });
     expect(parse).toThrowError(SceneError);
     expect(parse).toThrowError(/^settings\.grid\.size: [^\n]+$/);
   });
@@ -41,7 +43,7 @@ describe('parseScene', () => {
   });
 
   it('rejects an unknown kind', () => {
-    const scene = { v: 2, objects: [{ kind: 'laser', id: 1, x: 0, y: 0, angle: 0 }] };
+    const scene = { v: 3, objects: [{ kind: 'laser', id: 1, x: 0, y: 0, angle: 0 }] };
     const parse = () => parseScene(scene);
     expect(parse).toThrowError(SceneError);
     expect(parse).toThrowError(/^objects\.0\.kind: [^\n]+$/);
@@ -50,7 +52,7 @@ describe('parseScene', () => {
   // A mirror carrying a lens's radius would otherwise load and silently lose the field.
   it("rejects an object carrying another kind's fields", () => {
     const mirror = { kind: 'mirror', id: 1, x: 0, y: 0, angle: 0, length: 60, radius1: 50 };
-    const parse = () => parseScene({ v: 2, objects: [mirror] });
+    const parse = () => parseScene({ v: 3, objects: [mirror] });
     expect(parse).toThrowError(SceneError);
     expect(parse).toThrowError(/^objects\.0\.radius1: [^\n]+$/);
   });
@@ -150,7 +152,7 @@ const boundedFields = [
 ];
 
 function parseOne(object: object): void {
-  parseScene({ v: 2, objects: [object] });
+  parseScene({ v: 3, objects: [object] });
 }
 
 describe('field bounds', () => {
@@ -232,9 +234,9 @@ describe('field bounds', () => {
   it('holds at most maxObjects objects', () => {
     const ruler = { kind: 'ruler', ...placed, length: 50 };
     const objects = Array.from({ length: maxObjects }, (_, id) => ({ ...ruler, id }));
-    parseScene({ v: 2, objects });
+    parseScene({ v: 3, objects });
     expect(() =>
-      parseScene({ v: 2, objects: [...objects, { ...ruler, id: maxObjects }] }),
+      parseScene({ v: 3, objects: [...objects, { ...ruler, id: maxObjects }] }),
     ).toThrowError(/^objects: /);
   });
 

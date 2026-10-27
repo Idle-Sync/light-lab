@@ -192,10 +192,11 @@ const settingsSchema = v.strictObject({
   brightness: v.optional(v.picklist(['2d', '3d']), '2d'),
   grid: v.optional(gridSchema, {}),
   sightLines: v.optional(v.boolean(), true),
+  showImages: v.optional(v.boolean(), true),
 });
 
 export const sceneSchema = v.strictObject({
-  v: v.literal(2),
+  v: v.literal(3),
   settings: v.optional(settingsSchema, {}),
   objects: v.pipe(v.array(sceneObjectSchema), v.maxLength(maxObjects)),
 });

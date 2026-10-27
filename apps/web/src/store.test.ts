@@ -11,7 +11,7 @@ import { extentOf } from './bench/shapes';
 import { analyzedEyeId, store as appStore, createStore, snapToGrid } from './store';
 
 function emptyScene(): Scene {
-  return { v: 2, settings: defaultSettings, objects: [] };
+  return { v: 3, settings: defaultSettings, objects: [] };
 }
 
 function distance(first: SceneObject, second: SceneObject): number {
@@ -162,6 +162,14 @@ describe('store edits', () => {
     expect(store.getState().scene.objects).toEqual(examples.bench.objects);
   });
 
+  it('sets showImages and undoes it', () => {
+    const store = createStore(examples.bench);
+    store.setSettings({ showImages: false });
+    expect(store.getState().scene.settings.showImages).toBe(false);
+    store.undo();
+    expect(store.getState().scene.settings.showImages).toBe(true);
+  });
+
   it('duplicates an object beside the original under a new id', () => {
     const store = createStore(examples.bench);
     store.duplicateObject(2);
@@ -270,7 +278,7 @@ describe('analyzedEyeId', () => {
 describe('store writes stay inside the scene bounds', () => {
   function storeWithRuler(angle: number) {
     const ruler: SceneObject = { kind: 'ruler', id: 1, x: 0, y: 0, angle, length: 50 };
-    return createStore({ v: 2, settings: defaultSettings, objects: [ruler] });
+    return createStore({ v: 3, settings: defaultSettings, objects: [ruler] });
   }
 
   it('stops a drag past x = 10000 at 10000', () => {
@@ -302,7 +310,7 @@ describe('store object limit', () => {
   it('ignores add and duplicate once the scene holds maxObjects objects', () => {
     const ruler = { kind: 'ruler', x: 0, y: 0, angle: 0, length: 50 } as const;
     const objects = Array.from({ length: maxObjects }, (_, index) => ({ ...ruler, id: index + 1 }));
-    const store = createStore({ v: 2, settings: defaultSettings, objects });
+    const store = createStore({ v: 3, settings: defaultSettings, objects });
     store.addObject('ruler');
     store.duplicateObject(1);
     expect(store.getState().scene.objects).toHaveLength(maxObjects);

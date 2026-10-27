@@ -6,7 +6,7 @@ import { parseScene } from './scene';
 describe('overlappingGlass', () => {
   it('reports two balls whose centres are closer than their radii add up to', () => {
     const scene = parseScene({
-      v: 2,
+      v: 3,
       objects: [
         { kind: 'ball', id: 1, x: 0, y: 0, angle: 0, diameter: 30, material: 'bk7' },
         { kind: 'ball', id: 2, x: 10, y: 0, angle: 0, diameter: 30, material: 'bk7' },

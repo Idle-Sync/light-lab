@@ -1,7 +1,7 @@
 import { defaultSettings, type Scene } from './scene';
 
 const bench: Scene = {
-  v: 2,
+  v: 3,
   settings: { ...defaultSettings },
   objects: [
     { kind: 'point', id: 1, x: -220, y: -70, angle: 0, cone: 26, rays: 41, spectrum: 'white' },
@@ -36,7 +36,7 @@ const bench: Scene = {
 };
 
 const ball: Scene = {
-  v: 2,
+  v: 3,
   settings: { ...defaultSettings },
   objects: [
     { kind: 'point', id: 1, x: -140, y: 8, angle: 0, cone: 40, rays: 61, spectrum: 'white' },
@@ -46,7 +46,7 @@ const ball: Scene = {
 };
 
 const magnifier: Scene = {
-  v: 2,
+  v: 3,
   settings: { ...defaultSettings },
   objects: [
     {
