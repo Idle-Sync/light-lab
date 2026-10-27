@@ -6,6 +6,13 @@ landed, what it unblocks, what is still open. This file is the answer to "where 
 
 <!-- progress start -->
 
+## 2026-10-27 — Bounded scene fields and magnifier eye budget (run 20261027-122603-bound-scene-fields-eye-budget)
+
+- Every scene field is bounded to the inspector ranges by the schema, with at most 500 objects (`packages/engine/src/scene.ts`, `migrate.ts`); edits clamp in `apps/web/src/store.ts` and inspector values in `apps/web/src/panels/inspector-fields.ts`; the bench caps hatch marks and ruler ticks (`apps/web/src/bench/draw.ts`).
+- The eye pass stops emitting at its segment cap and aims cone rays at the pupil (`packages/engine/src/trace.ts`, `eye.ts`): the magnifier eye pass traces 18,325 segments (was 91,787) and its share of the source entering the pupil is 0.1687 (was 0.1690).
+- Magnifier eye annotation measured 16.0 to 16.4 ms at 4x CPU over three runs (CI measured 201.6 ms before the fix; the budget is 100 ms in the e2e assertion, 40 ms in the plan). Local `pnpm check` is green (engine 154 tests, web 151) and `pnpm e2e` passes 21 of 21.
+- Done locally, not yet proven on GitHub: the CI e2e job must pass on the next push. Vercel link and first deploy, and the `v0.1.0` tag, remain human steps (`docs/handoffs/handoff_01.md`).
+
 ## 2026-10-27 — Beginner bench, first half (Claude Code session)
 
 - Scene format v2: `grid` (show, size 0.01 to 500 mm, snap) and `sightLines` settings; version 1 links and files migrate; settings at their defaults stay out of links (`packages/engine/src/scene.ts`, `migrate.ts`, `links.ts`).
@@ -14,7 +21,7 @@ landed, what it unblocks, what is still open. This file is the answer to "where 
 - Eye: sight lines switch and legend, "Virtual image"/"Real image" labels, 24 mm eyeball, pupil 1 to 10 mm, eye view panel in three sizes.
 - Lens focal length slider (`symmetricLensRadius` in `packages/engine/src/materials.ts`) and F markers from traced focal points (`focalPoints` in `focal.ts`).
 - `prd.md` reordered into 9 milestones: beginner bench, lens shapes, Learn playlist, physical eye and vision, rough surfaces, then the wave lab.
-- Next: finish milestone 2 (tooltips, teaching detector, Guide page); bound scene fields before deploying; CI and deploy are still open from milestone 1.
+- Next: finish milestone 2 (tooltips, teaching detector, Guide page); CI and deploy are still open from milestone 1.
 
 ## 2026-10-26 — Milestone 1: ray bench (run 20261026-163917-milestone-1-ray-bench)
 

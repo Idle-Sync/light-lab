@@ -9,8 +9,8 @@ after every run so it never goes stale. Paths, not prose. Under 80 lines.
 - `progress.md` — what has landed and what is next
 - `.claude/conventions.md` — how code is written here, stack and library decisions, tooling
 - `CLAUDE.md` — working rules for every Claude Code session in this repo
-- `docs/handoffs/` — what the next session does first, one file per handoff
-- `docs/sessions/session_01.md` — what the first session decided and built
+- `docs/handoffs/handoff_01.md` — what the next session does first
+- `docs/sessions/s_0004.md` — the latest session note; `docs/sessions/` holds the rest
 
 ## Layout
 - `packages/engine/` — DOM-free engine: ray tracing, eye analysis, waves, scene schema and links
@@ -23,6 +23,7 @@ after every run so it never goes stale. Paths, not prose. Under 80 lines.
 - `apps/web/` — the React app: bench canvas, panels, engine worker
   - `apps/web/src/bench/` — p5 bench canvas, drawing, gestures, keyboard editing
   - `apps/web/src/panels/` — header, toolbar, inspector, readouts, share, file
+  - `apps/web/src/components/ui/` — shadcn/ui components
   - `apps/web/src/store.ts` — scene state with undo and redo
   - `apps/web/src/storage.ts`, `startup.ts` — browser-storage persistence and startup order
   - `apps/web/src/engine-worker.ts`, `engine-client.ts` — engine in a Web Worker through Comlink
@@ -31,18 +32,20 @@ after every run so it never goes stale. Paths, not prose. Under 80 lines.
   - `reference/README.md` — what each folder holds and how to port it
   - `reference/checks/verify.mjs` — the prototype's physics oracles
   - `reference/ui-mockup/` — the two complete prototype screens
-- `docs/` — vision, research and session notes
+- `docs/` — vision, research, handoffs and session notes
   - `docs/vision.md` — physics models, accuracy oracles, look tokens, eye and wave design
   - `docs/market-research.md` — competitors, their users' complaints, the gap
   - `docs/research/` — stack, library and tooling research with sources and decisions
+  - `docs/handoffs/` — what the next session does first, one file per handoff
   - `docs/sessions/` — one note per session, `TEMPLATE.md` for new ones
 - `.github/workflows/ci.yml` — CI: `pnpm check` and the Playwright job
+- `.claude/lessons.md` — lessons recorded by idleflow runs
 - `playwright.config.ts`, `vercel.json` — browser test setup; Vercel build and install config
 - `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml` — workspace root, members, lockfile
 - `tsconfig.base.json`, `biome.json` — shared TypeScript and lint/format settings
 - `.node-version` — Node 24 for local, CI and Vercel
+- `README.md` — commands and layout
 - `LICENSE` — GPL-3.0
-- `.claude/lessons.md` — lessons recorded by idleflow runs
 
 ## Run it
 Node 24 and the pnpm version pinned in `package.json` (Corepack provides it).

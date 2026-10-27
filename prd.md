@@ -104,9 +104,11 @@ Ray bench (milestone 1)
   every push, and a Vercel deployment — done when: the production URL opens the bench; CI is
   green on the default branch; a preview URL exists per pull request.
 - Scene fields bounded to the inspector's ranges, so a crafted link or saved scene cannot
-  freeze the tab: every numeric field in the scene schema has a minimum and maximum, the
-  drawing pass caps rays, hatch marks and ruler ticks — done when: a test opens a scene with
-  extreme values and it traces and draws within the responsiveness budgets above.
+  freeze the tab: the scene schema gives every numeric field a minimum and maximum and holds
+  at most 500 objects; the drawing pass caps rays, hatch marks and ruler ticks; the eye pass
+  stops at its segment cap, and the magnifier eye analysis measures under the 100 ms budget at
+  4x CPU in local runs. Done when: vitest asserts the emission stop, the ray cap, and the
+  hatch and tick caps for scenes with extreme values.
 
 Beginner bench (milestone 2)
 
