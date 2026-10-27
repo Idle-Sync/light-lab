@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { examples, type Scene } from '@light-lab/engine';
+import { kindTitles } from '../src/panels/inspector-fields';
 import { expectSceneShown, sceneUrl, selectObject } from './bench';
 import { expect, test } from './test';
 
@@ -43,4 +44,27 @@ test('no serious or critical WCAG violation with a toolbar tooltip shown', async
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
     .analyze();
   expect(severeViolations(results.violations)).toEqual([]);
+});
+
+test('the guide dialog lists every tool, passes axe and gives focus back', async ({ page }) => {
+  await page.goto(await sceneUrl(examples.bench));
+  await expectSceneShown(page, examples.bench);
+  // A selected object, so a Backspace that leaked out of the dialog would delete it.
+  await selectObject(page, examples.bench, 2);
+  const guideButton = page.getByRole('button', { name: 'Guide', exact: true });
+  await guideButton.click();
+  const dialog = page.getByRole('dialog', { name: 'Guide' });
+  await expect(dialog).toBeVisible();
+  for (const title of Object.values(kindTitles)) {
+    await expect(dialog.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  }
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze();
+  expect(severeViolations(results.violations)).toEqual([]);
+  await page.keyboard.press('Backspace');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(guideButton).toBeFocused();
+  await expectSceneShown(page, examples.bench);
 });

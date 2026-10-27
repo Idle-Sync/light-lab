@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { store, useAppState } from '../store';
 import { exampleLinks } from './examples';
 import { sceneFromFileText, sceneToFileText } from './file';
+import { Guide } from './Guide';
 import { copyWithClipboard, shareSceneLink } from './share';
 
 const copiedMessageMilliseconds = 2000;
@@ -104,6 +105,7 @@ export function Header() {
         <Button type="button" variant="default" size="sm" onClick={share}>
           Share
         </Button>
+        <Guide />
       </div>
 
       {/* Kept in the DOM so screen readers announce the text when it appears. */}
