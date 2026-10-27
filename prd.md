@@ -103,8 +103,109 @@ Ray bench (milestone 1)
 - Public repository under the Idle-Sync GitHub organization with a GPL-3.0 `LICENSE`, CI on
   every push, and a Vercel deployment — done when: the production URL opens the bench; CI is
   green on the default branch; a preview URL exists per pull request.
+- Scene fields bounded to the inspector's ranges, so a crafted link or saved scene cannot
+  freeze the tab: every numeric field in the scene schema has a minimum and maximum, the
+  drawing pass caps rays, hatch marks and ruler ticks — done when: a test opens a scene with
+  extreme values and it traces and draws within the responsiveness budgets above.
 
-Wave lab (milestone 2)
+Beginner bench (milestone 2)
+
+- Clean slate: a New button empties the bench in one step that Undo brings back; a first visit
+  opens an empty bench with a hint on how to start; the examples stay one click away in the
+  header — done when: Playwright tests cover the first visit and New followed by Undo.
+- New objects land in a free spot clear of the objects already on the bench, never stacked —
+  done when: a test adds several objects and no two overlap.
+- Every toolbar tool has a tooltip saying what it is and what it is for, reachable by mouse
+  and keyboard focus — done when: the accessibility checker passes with the tooltips shown.
+- Grid: faint dark grey lines that never wash out the rays, switched on and off; size in mm
+  from presets (0.5, 1, 5, 10, 25, 50) or typed from 0.01 to 500; drawn lines thin out by
+  powers of 5 when closer than 8 px; snap to grid when dragging, adding, duplicating and
+  nudging; grid settings saved in the scene (format v2, version 1 links migrate) — done when:
+  tests cover the line count bound, snapping on each path and the v1 migration.
+- Eye made readable: a sight lines switch; a "How the eye sees" legend saying the eye sends out
+  no rays, dashed sight lines meet at a virtual image and a solid line marks a real image;
+  "Virtual image" and "Real image" labels on the bench; the eyeball drawn at a real eye's
+  24 mm; pupil from 1 to 10 mm; the "what the eye sees" panel in small, medium and large —
+  done when: tests cover the switch, the labels, eye picking at 24 mm and the panel sizes.
+- Lens set by focal length: a focal length slider solves the thick-lens equation for equal
+  radii, radii under "Advanced"; F markers at the traced focal points of a selected lens,
+  curved mirror or ball — done when: the slider's value is the focal length the label shows
+  within 0.1 mm and the markers sit at the paraxial focus within 5 %.
+- Detector that teaches: a plain-language verdict (no light, sharp spot with its width, light
+  spread over a width, colours separated into a spectrum), a "white card" strip showing the
+  colours paper would show there, a brightness graph with mm marks in the inspector, and a
+  one-sentence explanation of every readout term — done when: tests cover each verdict from
+  constructed readings and every readout term has its explanation.
+- Guide page: every tool, what it does, its controls and readouts; how the bench models light
+  as rays (straight lines, Snell's law and total internal reflection, Fresnel partial
+  reflection and polarization, Sellmeier dispersion and white light as 7 wavelengths, ray
+  stopping rules, 2D and 3D-equivalent brightness, eye path analysis, the thick-lens and
+  mirror formulas) with each assumption stated — done when: every toolbar kind and every
+  readout's assumes line is covered, and a test fails when a kind has no Guide entry.
+
+Lens and mirror shapes (milestone 3)
+
+- Concave (diverging) and meniscus (concavo-convex, moon-shaped) lenses: each face has its own
+  signed radius or is flat — done when: an oracle checks a biconcave lens's negative focal
+  length and a meniscus lens's focal length against the thick-lens equation.
+- Custom 2D lens and mirror shapes drawn and edited as points joined by straight segments and
+  arcs — done when: a custom shape built from two arcs traces the same rays as the matching
+  standard lens within 1e-6 mm.
+
+Learn playlist (milestone 4)
+
+- Moved up from Nice to have: without guidance a newcomer cannot build a scene like the
+  magnifier, so there would be no shared links to learn from.
+- A playlist of lessons that teach one idea and one or two tools each, in order: shadows
+  (straight lines), mirror (angle in equals angle out), bending light (refraction), rainbow
+  (dispersion), focus (a lens and its focal point), real image (upside down on a screen),
+  magnifying glass (virtual image), the spoon (concave and convex mirrors), glass ball or water
+  drop — done when: each lesson can be finished from its start state in a Playwright test.
+- The learner builds each scene: every step names one action, highlights the control, and
+  checks the scene to move on, with a short "why" card that uses the live numbers — done when:
+  each step's check is a pure function tested against a passing and a failing scene.
+- Lessons can be replayed any number of times; a first visit opens the playlist — done when: a
+  test restarts a finished lesson from its first step.
+- Image orientation readout: upright or upside down for every image the eye sees — done when:
+  a real image through a converging lens reads upside down and the magnifier's virtual image
+  reads upright in tests.
+
+Physical eye, vision and camera (milestone 5)
+
+- Camera view on a flat virtual sensor with a projection switch: rectilinear (`f·tan θ`,
+  default), equidistant (`f·θ`), stereographic (`2f·tan(θ/2)`) — done when: a straight edge
+  of an extended object is straight in rectilinear and curved in equidistant.
+- Physical model eye: cornea, lens and curved retina from a standard model eye (Emsley reduced
+  eye or Le Grand) traced as optics in the scene, with accommodation, blur, near point and
+  depth of field from the physics; the eye can be opened to show the retina image, with the
+  pupil and cornea changing; retina strip shown unrolled beside the rectilinear view — done
+  when: the model eye's focal length is about 16.7 mm (60 dioptres) in a test and a point
+  source's retinal spot keeps its size as distance changes.
+- Vision conditions: short sight (myopia), long sight (hyperopia) and loss of near focus with
+  age (presbyopia) set on the model eye, showing where it focuses and the blur on the retina —
+  done when: a myopic eye focuses a distant point in front of the retina in a test.
+- Spectacles: a lens placed in front of the eye corrects it; the app suggests the lens type
+  (converging or diverging) and its power in dioptres; a learner can enter their own sphere
+  prescription and see their glasses work — done when: the suggested power brings a distant
+  point to focus on the retina of a myopic and a hyperopic eye within 0.25 dioptres.
+- Colour vision deficiency (deuteranopia, protanopia, tritanopia): the eye view shown as that
+  person sees the colours; no lens is suggested, because the cause is the eye's cone cells, not
+  its focus — done when: a test checks the colour transform against a published simulation
+  matrix and that no lens suggestion appears.
+- Offline PWA with `vite-plugin-pwa` — done when: a Playwright test loads the site, goes
+  offline, reloads, and the last scene opens; the app is installable from the browser.
+
+Rough surfaces (milestone 6)
+
+- Roughness from 0 (polished) to 1 (matte) on mirrors, lenses and blockers, so a rough surface
+  scatters light and the eye sees it as an object. Rays do not multiply at each rough hit:
+  every hit sends one ray toward the eye's pupil weighted by the scattering law, the light
+  continues as one ray in a sampled direction, and a few short faint rays draw the spread. The
+  sampling uses a fixed seed per scene, so a scene always draws the same picture — done when: a
+  fully rough surface follows Lambert's cosine law within 2 % in an oracle, the eye sees a lit
+  matte blocker, and the responsiveness budgets of milestone 1 hold with one rough surface.
+
+Wave lab (milestone 7)
 
 - Single slit, double slit and grating with wavelength, slit width, separation, slit count and
   screen distance; exact Huygens–Fresnel sum with `1/√r` amplitude and `(1 + cos θ)/2`
@@ -120,21 +221,10 @@ Wave lab (milestone 2)
   unthrottled in Node).
 - Rays / Waves switch in the header; the wave setup lives in the same versioned scene JSON —
   done when: a wave link opens the wave lab with its settings.
+- Wave lessons in the Learn playlist and a wave section in the Guide page, built like the ray
+  ones — done when: each wave lesson can be finished in a Playwright test.
 
-Physical eye, camera projections, offline (milestone 3)
-
-- Camera view on a flat virtual sensor with a projection switch: rectilinear (`f·tan θ`,
-  default), equidistant (`f·θ`), stereographic (`2f·tan(θ/2)`) — done when: a straight edge
-  of an extended object is straight in rectilinear and curved in equidistant.
-- Physical model eye: cornea, lens and curved retina from a standard model eye (Emsley reduced
-  eye or Le Grand) traced as optics in the scene, with accommodation, blur, near point and
-  depth of field from the physics; retina strip shown unrolled beside the rectilinear view —
-  done when: the model eye's focal length is about 16.7 mm (60 dioptres) in a test and a point
-  source's retinal spot keeps its size as distance changes.
-- Offline PWA with `vite-plugin-pwa` — done when: a Playwright test loads the site, goes
-  offline, reloads, and the last scene opens; the app is installable from the browser.
-
-GRIN glass and ray-mode grating (milestone 4)
+GRIN glass and ray-mode grating (milestone 8)
 
 - Gradient-index glass with an RK4 ray solver and Fresnel reflections at its boundary — done
   when: a GRIN object with a constant index matches homogeneous glass within 1e-6 mm; a
@@ -144,7 +234,7 @@ GRIN glass and ray-mode grating (milestone 4)
   intensities come from the wave theory of the same grating — done when: order shares agree
   with the wave lab's Fraunhofer values for the same grating within 1 %.
 
-Ripple view (milestone 5)
+Ripple view (milestone 9)
 
 - GPU wave grid on p5 WEBGL framebuffers showing waves spreading from the wave lab setup, with
   enlarged wavelengths and a visible "for watching, not measuring" note — done when: it runs
@@ -157,7 +247,8 @@ Ripple view (milestone 5)
 - Fresnel lens and protractor objects — not in the prototype; added once the twelve kinds ship.
 - Engine published to npm — the package is built publishable in v1; publishing is a release
   step after the API has carried two milestones unchanged.
-- Classroom or lesson mode — needs user evidence from shared links first.
+- Classroom mode: lessons written by teachers and set as homework — after the Learn playlist
+  shows how learners use lessons.
 - Embeddable scenes — follows from the URL-only state rule below; a view-only flag is one field.
 - Accounts or a paid tier — no demonstrated paid demand (`docs/market-research.md`, "Risks");
   storage sits behind one save/load interface so a backend can slot in.
@@ -174,6 +265,11 @@ Ripple view (milestone 5)
   praise") but every string would have to be stable first; after v1.
 - SVG export — praised in Ray Optics; waits until the renderer settles after the ripple view.
 - A pre-commit hook or a justfile — CI runs the same checks; declined in `.claude/conventions.md`.
+- Astigmatism — it needs an eye that focuses differently in two directions, and a 2D bench
+  has one.
+- Lens suggestions for colour vision deficiency — no lens power corrects it.
+- Grid sizes in nanometres — the bench is measured in millimetres and a nanometre grid cannot
+  be drawn; nanometres belong to wavelengths and slit widths.
 
 ## Constraints
 
@@ -208,15 +304,20 @@ Milestones are a build order, not dates; each ends deployed and usable.
 
 1. Ray bench — the workspace, engine package and web app on the new stack with all twelve
    object kinds, full ray physics, eye path analysis with fixed exposure, scene links, browser
-   storage, undo and redo, touch, WCAG AA, the ray oracles in CI, deployed on Vercel. Users
-   can test the eye hypothesis from this release.
-2. Wave lab — slits and gratings with the Huygens sum, Fraunhofer overlay, measured-vs-theory
-   panel and regime warning; the wave oracles in CI; the Rays / Waves switch.
-3. Physical eye and camera — projections with fisheye correction, the model eye with the two
-   new oracles, and the offline PWA.
-4. GRIN glass and ray-mode grating — RK4 solver with boundary reflections; grating orders with
+   storage, undo and redo, touch, WCAG AA, the ray oracles in CI, bounded scene fields,
+   deployed on Vercel. Users can test the eye hypothesis from this release.
+2. Beginner bench — clean slate, free placement, tooltips, grid and snapping, the readable eye,
+   lenses set by focal length, the teaching detector, the Guide page.
+3. Lens and mirror shapes — concave and meniscus lenses, custom 2D shapes.
+4. Learn playlist — guided, replayable ray lessons; image orientation.
+5. Physical eye, vision and camera — the model eye, vision conditions with spectacles and
+   suggested power, colour vision deficiency, camera projections, the offline PWA.
+6. Rough surfaces — scattering that lets the eye see matte objects, within the speed budgets.
+7. Wave lab — slits and gratings with the Huygens sum, Fraunhofer overlay, measured-vs-theory
+   panel and regime warning; the wave oracles in CI; the Rays / Waves switch; wave lessons.
+8. GRIN glass and ray-mode grating — RK4 solver with boundary reflections; grating orders with
    wave-theory intensities.
-5. Ripple view — GPU wave grid for watching waves spread.
+9. Ripple view — GPU wave grid for watching waves spread.
 
 ## Two-year shape
 

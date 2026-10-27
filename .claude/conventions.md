@@ -19,6 +19,8 @@ idleflow run. Commit this file. Edit it by hand whenever a decision changes, or 
   a plain dict before a class, until there is behaviour to attach.
 - **Handle failures where they happen.** No bare `except`/`catch`, no swallowed errors, no
   silent fallbacks. If something can be missing, say what happens then.
+- **Tests sit next to the code they test.** `store.ts` has `store.test.ts` beside it, as Vitest
+  finds them by default; browser tests live in `apps/web/e2e/`.
 - **Match the repo.** When this file and the surrounding code disagree, the surrounding code
   wins inside an existing module; this file wins for new modules.
 

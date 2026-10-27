@@ -22,7 +22,7 @@ CI is red on its first run (run 40334623127): the `check` job passes; the `e2e` 
 ## Then
 
 - **Test the eye feature with real users.** Market research found no demand evidence for it, so milestone 1 is where to learn whether people use it.
-- **Start milestone 2, the wave lab:** `/idleflow:feature "Milestone 2: Wave lab"`. The engine side (`computeWaves`, its three oracles) already exists in `packages/engine/src/waves.ts`; the UI, the Rays / Waves switch and wave fields in the scene JSON are the work.
+- **The wave lab is milestone 7 since 2026-10-27; milestone 2 is the beginner bench (`prd.md`).** The engine side (`computeWaves`, its three oracles) already exists in `packages/engine/src/waves.ts`; the UI, the Rays / Waves switch and wave fields in the scene JSON are the work.
 
 ## Known gaps and open items
 

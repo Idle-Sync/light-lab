@@ -8,7 +8,7 @@ From an idea ("a light simulator like phydemo, but modern and accurate") to mile
 |---|---|
 | Product | 2D only, browser. Ray bench, an observer eye, a wave lab (slits and gratings), every number computed from physics |
 | Accuracy | Sellmeier glass data, Fresnel equations, total internal reflection, exact Huygens–Fresnel sums; oracles in `reference/checks/verify.mjs` and the engine tests |
-| Eye | Ray-computed view with fixed exposure; point sources keep their size and only get brighter; camera projections with fisheye correction and a physical model eye come in milestone 3 |
+| Eye | Ray-computed view with fixed exposure; point sources keep their size and only get brighter; camera projections with fisheye correction and a physical model eye come in milestone 5 |
 | Stack | pnpm 12 workspace, Node 24, Vite, TypeScript strict, React, Tailwind, shadcn/ui, p5 instance mode, engine in a Web Worker through Comlink, Biome, Vitest, Playwright, GitHub Actions, Vercel |
 | Engine API | Pure functions over plain data: `trace(scene)`, `analyzeEye(scene, eyeId)`, `computeWaves(setup)`, `migrateScene(json)` |
 | Scene links | Created by a Share button, never written live; `#z.` deflate + base64url written, `#z.` and `#j.` read; versioned with migrations that are never deleted |
