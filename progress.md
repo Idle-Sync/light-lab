@@ -12,7 +12,7 @@ landed, what it unblocks, what is still open. This file is the answer to "where 
 - App in `apps/web/src`: p5 bench canvas with pan, zoom, touch and keyboard editing (`bench/`), header with Share, toolbar, inspector and scene settings (`panels/`), undo and redo (`store.ts`), file and browser-storage persistence (`storage.ts`, `panels/file.ts`), engine in a Web Worker (`engine-worker.ts`, `engine-client.ts`), example scenes (`packages/engine/src/examples.ts`).
 - Checks: `pnpm check` (biome, per-package tsc and vitest); Playwright suite in `apps/web/e2e` (18 tests: touch, keyboard, links, accessibility, speed); CI in `.github/workflows/ci.yml` with a check job and an e2e job; `vercel.json` lands, no deploy yet.
 - Completes milestone 1 of `prd.md`. `computeWaves` and its three oracles are in place for the milestone 2 wave lab.
-- Next: milestone 2 from `prd.md` (Rays/Waves switch, wave lab UI, wave scene fields). Human steps: link Vercel and confirm the first deploy; confirm the perf budgets on GitHub runners at the first CI run; tag `v0.1.0` for milestone 1 (`releases: github-tagged`); update `prd.md` "Responsiveness" (line 76 still says 60 ms, the run set 100 ms at 4x throttling).
+- Next: milestone 2 from `prd.md` (Rays/Waves switch, wave lab UI, wave scene fields). Human steps: link Vercel and confirm the first deploy; fix the red CI e2e job (the magnifier eye analysis measures 201.6 ms scaled on the GitHub runner against the 100 ms budget, `apps/web/e2e/perf.spec.ts:98`; see `handoff_01.md`); tag `v0.1.0` for milestone 1 (`releases: github-tagged`).
 
 ## 2026-10-26 — project initialised (run 20261026-153831-init)
 
