@@ -34,6 +34,6 @@ CI was red on its first run (run 40334623127): the `check` job passed; the `e2e`
 ## Where to read
 
 - `progress.md`, `docs/sessions/s_0002.md`: what milestone 1 landed
-- `prd.md`: milestones 2 to 5 and every "done when"
+- `prd.md`: milestones 2 to 9 and every "done when"
 - `docs/vision.md`: physics models and accuracy oracles
 - `docs/sessions/session_01.md`: everything decided in this session
