@@ -1,5 +1,5 @@
 import { lensThickness, type SceneObject } from '@light-lab/engine';
-import type { Store, View } from '../store';
+import { type Store, snapToGrid, type View } from '../store';
 import { arcMirrorShapeOf, type Point, radians, rotateHandleOf } from './shapes';
 import { benchToScreen, clampScale, screenToBench, viewPlacing, zoomAt } from './view';
 
@@ -235,8 +235,14 @@ export function createGestures(store: Store, getCanvasBox: () => CanvasBox) {
       if (gesture.mode === 'move') {
         const id = gesture.id;
         // An undo or delete during the drag can remove the object; a patch would then still commit.
-        if (!store.getState().scene.objects.some((object) => object.id === id)) return;
-        const patch = { x: bench.x + gesture.grabOffset.x, y: bench.y + gesture.grabOffset.y };
+        const { scene } = store.getState();
+        if (!scene.objects.some((object) => object.id === id)) return;
+        const grid = scene.settings.grid;
+        const place = (value: number) => (grid.snap ? snapToGrid(value, grid.size) : value);
+        const patch = {
+          x: place(bench.x + gesture.grabOffset.x),
+          y: place(bench.y + gesture.grabOffset.y),
+        };
         store.updateObject(id, patch, { continuesEdit: true });
         return;
       }

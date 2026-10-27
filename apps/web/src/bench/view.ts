@@ -22,6 +22,16 @@ export function niceLength(length: number): number {
   return 10 * power;
 }
 
+// Closer grid lines turn into a grey wash over the rays.
+const closestGridLinePixels = 8;
+
+/** The spacing, in mm, of the grid lines drawn: the grid size times a power of 5, at least 8 px apart. */
+export function gridStepOnScreen(size: number, scale: number): number {
+  let step = size;
+  while (step * scale < closestGridLinePixels) step *= 5;
+  return step;
+}
+
 export function clampScale(scale: number): number {
   return Math.min(maxScale, Math.max(minScale, scale));
 }

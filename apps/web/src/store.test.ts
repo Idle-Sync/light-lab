@@ -167,6 +167,13 @@ describe('store edits', () => {
     expect(store.getState().selectedId).toBe(10);
   });
 
+  it('duplicates onto the grid while snapping is on', () => {
+    const store = createStore(examples.bench);
+    store.setSettings({ grid: { show: true, size: 25, snap: true } });
+    store.duplicateObject(2);
+    expect(store.getState().scene.objects.at(-1)).toMatchObject({ x: -100, y: -50 });
+  });
+
   it('removes an object and clears the selection', () => {
     const store = createStore(examples.bench);
     store.select(2);

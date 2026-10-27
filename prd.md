@@ -152,8 +152,8 @@ Ripple view (milestone 5)
 
 ## Nice to have (later)
 
-- Command palette, snapping and alignment guides, editable endpoints — editor comfort, not the
-  core job; after milestone 1 feedback.
+- Command palette, alignment guides, editable endpoints — editor comfort, not the core job;
+  after milestone 1 feedback. Grid snapping already ships (scene settings, `grid.snap`).
 - Fresnel lens and protractor objects — not in the prototype; added once the twelve kinds ship.
 - Engine published to npm — the package is built publishable in v1; publishing is a release
   step after the API has carried two milestones unchanged.

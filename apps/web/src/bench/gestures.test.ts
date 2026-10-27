@@ -143,6 +143,15 @@ describe('dragging an object', () => {
     expect(store.getState().scene.objects[0]).toMatchObject({ x: -210, y: -75 });
   });
 
+  it('lands on the nearest grid line while snapping is on', () => {
+    const { store, gestures } = setup();
+    store.setSettings({ grid: { show: true, size: 25, snap: true } });
+    const source = clientPointOf(store, -220, -70);
+    gestures.pointerDown(pointer(1, source.clientX, source.clientY));
+    gestures.pointerMove(pointer(1, source.clientX + 22, source.clientY - 10));
+    expect(store.getState().scene.objects[0]).toMatchObject({ x: -200, y: -75 });
+  });
+
   it('continues one edit on every move and finishes it on pointerup', () => {
     const { store, gestures } = setup();
     const updateObject = vi.spyOn(store, 'updateObject');

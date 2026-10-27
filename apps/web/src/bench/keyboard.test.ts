@@ -30,6 +30,14 @@ describe('keyToSceneEdit', () => {
     expect(keyToSceneEdit('ArrowDown', true, lens)).toEqual({ y: -60 });
   });
 
+  // A 1 mm nudge would snap straight back to the grid line it started on.
+  it('nudges one grid step onto the grid while snapping is on', () => {
+    const grid = { show: true, size: 25, snap: true };
+    expect(keyToSceneEdit('ArrowLeft', false, lens, grid)).toEqual({ x: -150 });
+    expect(keyToSceneEdit('ArrowRight', true, lens, grid)).toEqual({ x: -100 });
+    expect(keyToSceneEdit('ArrowUp', false, lens, grid)).toEqual({ y: -100 });
+  });
+
   it('rotates 5 degrees with the brackets', () => {
     expect(keyToSceneEdit('[', false, lens)).toEqual({ angle: 5 });
     expect(keyToSceneEdit(']', false, lens)).toEqual({ angle: 15 });

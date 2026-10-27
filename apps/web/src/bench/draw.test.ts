@@ -13,6 +13,7 @@ import {
   type BenchContext,
   drawBench,
   drawEyeStrip,
+  drawGrid,
   drawImageMarkers,
   drawRays,
   formatPercent,
@@ -153,6 +154,56 @@ function strokeThrough(context: RecordingContext, a: [number, number], b: [numbe
     return hasA && hasB;
   });
 }
+
+describe('drawGrid', () => {
+  const view = { scale: 2, offsetX: 3, offsetY: -7 };
+  const canvas = { width: 800, height: 600 };
+
+  it('draws nothing when the grid is off', () => {
+    const context = new RecordingContext();
+    drawGrid(context, view, canvas, { show: false, size: 10, snap: false });
+    expect(context.strokes).toEqual([]);
+  });
+
+  it('draws lines through the bench points that sit on the grid', () => {
+    const context = new RecordingContext();
+    drawGrid(context, view, canvas, { show: true, size: 10, snap: false });
+    const verticalXs = new Set<number>();
+    for (const stroke of context.strokes) {
+      for (let index = 0; index + 1 < stroke.points.length; index += 2) {
+        const [start, end] = [stroke.points[index], stroke.points[index + 1]];
+        if (start[0] === end[0]) verticalXs.add(start[0]);
+      }
+    }
+    expect(verticalXs.size).toBeGreaterThan(30);
+    for (const x of verticalXs) {
+      const benchX = (x - canvas.width / 2) / view.scale + view.offsetX;
+      expect(Math.abs(benchX / 10 - Math.round(benchX / 10))).toBeLessThan(1e-6);
+    }
+  });
+
+  // The grid sits under the rays, which add their light on top of it, so it stays faint.
+  it('keeps every line faint', () => {
+    const context = new RecordingContext();
+    drawGrid(context, view, canvas, { show: true, size: 10, snap: false });
+    for (const stroke of context.strokes) {
+      const alpha = Number(/,([\d.]+)\)$/.exec(stroke.strokeStyle)?.[1]);
+      expect(alpha).toBeLessThanOrEqual(0.08);
+    }
+  });
+
+  it('draws a bounded number of lines whatever the grid size', () => {
+    const context = new RecordingContext();
+    drawGrid(context, { scale: 0.05, offsetX: 0, offsetY: 0 }, canvas, {
+      show: true,
+      size: 0.01,
+      snap: false,
+    });
+    let lines = 0;
+    for (const stroke of context.strokes) lines += stroke.points.length / 2;
+    expect(lines).toBeLessThanOrEqual((canvas.width + canvas.height) / 8 + 4);
+  });
+});
 
 describe('drawRays', () => {
   const buckets: Record<string, RayBucket> = {

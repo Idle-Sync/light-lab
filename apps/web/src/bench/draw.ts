@@ -2,6 +2,7 @@ import {
   type DetectorReading,
   type EyeAnalysis,
   type EyeGroup,
+  type GridSettings,
   type RayBucket,
   refractiveIndex,
   type Scene,
@@ -17,12 +18,13 @@ import {
   degrees,
   extentOf,
   lensShapeOf,
+  type Point,
   prismCornersOf,
   radians,
   rotateHandleOf,
   toBench,
 } from './shapes';
-import { benchToScreen, type CanvasSize, niceLength, screenToBench } from './view';
+import { benchToScreen, type CanvasSize, gridStepOnScreen, screenToBench } from './view';
 
 /** The part of a 2D canvas context the bench drawing uses. */
 export type BenchContext = Pick<
@@ -148,7 +150,7 @@ export function drawBench(context: BenchContext, frame: BenchFrame): void {
   context.shadowBlur = 0;
   context.fillStyle = '#000';
   context.fillRect(0, 0, size.width, size.height);
-  drawGrid(context, view, size);
+  drawGrid(context, view, size, scene.settings.grid);
 
   const pixel = 1 / view.scale;
   context.save();
@@ -181,16 +183,48 @@ function shownEyeAnalysis(frame: BenchFrame): EyeAnalysis | null {
   return analysis;
 }
 
-function drawGrid(context: BenchContext, view: View, size: CanvasSize): void {
-  const step = niceLength(26 / view.scale);
+interface GridLine {
+  from: Point;
+  to: Point;
+  major: boolean;
+}
+
+/** The grid lines across the canvas, in screen pixels; every fifth line is a major one. */
+function gridLines(view: View, size: CanvasSize, gridSize: number): GridLine[] {
+  const step = gridStepOnScreen(gridSize, view.scale);
   const topLeft = screenToBench({ x: 0, y: 0 }, view, size);
   const bottomRight = screenToBench({ x: size.width, y: size.height }, view, size);
-  context.fillStyle = 'rgba(255,255,255,0.08)';
-  for (let x = Math.floor(topLeft.x / step) * step; x <= bottomRight.x; x += step) {
-    for (let y = Math.floor(topLeft.y / step) * step; y <= bottomRight.y; y += step) {
-      const dot = benchToScreen({ x, y }, view, size);
-      context.fillRect(dot.x - 0.75, dot.y - 0.75, 1.5, 1.5);
+  const lines: GridLine[] = [];
+  for (let index = Math.ceil(topLeft.x / step); index * step <= bottomRight.x; index += 1) {
+    const x = benchToScreen({ x: index * step, y: 0 }, view, size).x;
+    lines.push({ from: { x, y: 0 }, to: { x, y: size.height }, major: index % 5 === 0 });
+  }
+  for (let index = Math.ceil(topLeft.y / step); index * step <= bottomRight.y; index += 1) {
+    const y = benchToScreen({ x: 0, y: index * step }, view, size).y;
+    lines.push({ from: { x: 0, y }, to: { x: size.width, y }, major: index % 5 === 0 });
+  }
+  return lines;
+}
+
+/** Faint grey grid lines under the rays, which add their light on top. */
+export function drawGrid(
+  context: BenchContext,
+  view: View,
+  size: CanvasSize,
+  grid: GridSettings,
+): void {
+  if (!grid.show) return;
+  const lines = gridLines(view, size, grid.size);
+  context.lineWidth = 1;
+  for (const major of [false, true]) {
+    context.strokeStyle = major ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)';
+    context.beginPath();
+    for (const line of lines) {
+      if (line.major !== major) continue;
+      context.moveTo(line.from.x, line.from.y);
+      context.lineTo(line.to.x, line.to.y);
     }
+    context.stroke();
   }
 }
 

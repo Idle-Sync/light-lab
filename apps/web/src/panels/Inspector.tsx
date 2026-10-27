@@ -1,12 +1,14 @@
 import {
   type EyeRow,
+  type GridSettings,
+  gridSizeRange,
   overlappingGlass,
   pathLabel,
   type Scene,
   type SceneObject,
   type Settings,
 } from '@light-lab/engine';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SceneResults } from '../engine-worker';
 import { store, useAppState } from '../store';
 import { keptEyeRows } from './eye-rows';
@@ -265,12 +267,76 @@ const polarizationOptions: ChoiceField['options'] = [
   { value: 'p', label: 'p' },
 ];
 
+const gridSizePresets = [0.5, 1, 5, 10, 25, 50];
+
+function GridSizeInput(props: { size: number; onSize: (size: number) => void }) {
+  const [text, setText] = useState(String(props.size));
+  useEffect(() => setText(String(props.size)), [props.size]);
+  const typed = Number(text);
+  const valid = text !== '' && typed >= gridSizeRange.min && typed <= gridSizeRange.max;
+  return (
+    <label className="flex items-center justify-between gap-2">
+      <span className="text-graphite">Grid size, mm</span>
+      <input
+        type="number"
+        min={gridSizeRange.min}
+        max={gridSizeRange.max}
+        step={0.01}
+        value={text}
+        aria-invalid={!valid}
+        className="w-24 rounded-md border border-rule bg-darkroom px-2 py-1 text-right tabular-nums focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none aria-[invalid=true]:border-sodium"
+        onChange={(event) => {
+          setText(event.target.value);
+          const size = Number(event.target.value);
+          if (event.target.value !== '' && size >= gridSizeRange.min && size <= gridSizeRange.max) {
+            props.onSize(size);
+          }
+        }}
+      />
+    </label>
+  );
+}
+
+function GridControls(props: { grid: GridSettings }) {
+  const { grid } = props;
+  const setGrid = (patch: Partial<GridSettings>) =>
+    store.setSettings({ grid: { ...grid, ...patch } });
+  const onOff = [
+    { value: true, label: 'On' },
+    { value: false, label: 'Off' },
+  ];
+  return (
+    <>
+      <Chips
+        label="Grid"
+        options={onOff}
+        isOn={(value) => value === grid.show}
+        onPick={(value) => setGrid({ show: value === true })}
+      />
+      <Chips
+        label="Grid size"
+        options={gridSizePresets.map((size) => ({ value: size, label: `${size} mm` }))}
+        isOn={(value) => value === grid.size}
+        onPick={(value) => setGrid({ size: Number(value) })}
+      />
+      <GridSizeInput size={grid.size} onSize={(size) => setGrid({ size })} />
+      <Chips
+        label="Snap to grid"
+        options={onOff}
+        isOn={(value) => value === grid.snap}
+        onPick={(value) => setGrid({ snap: value === true })}
+      />
+    </>
+  );
+}
+
 function SceneSettings(props: { scene: Scene; results: SceneResults | null }) {
   const { settings, objects } = props.scene;
   const set = (patch: Partial<Settings>) => store.setSettings(patch);
   return (
     <section aria-label="Scene settings" className="flex flex-col gap-3 border-t border-rule pt-3">
       <h2 className="m-0 text-[17px] font-semibold tracking-tight">Scene</h2>
+      <GridControls grid={settings.grid} />
       <Chips
         label="Partial reflections"
         options={[

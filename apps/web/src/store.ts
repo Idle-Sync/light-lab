@@ -231,11 +231,11 @@ export function createStore(initialScene: Scene) {
       const original = state.scene.objects.find((object) => object.id === id);
       if (!original) return;
       const copyId = nextObjectId(state.scene);
+      const beside = { x: original.x + duplicateOffset, y: original.y + duplicateOffset };
       const copy = roundPlacement({
         ...original,
+        ...snapPoint(beside, state.scene.settings.grid),
         id: copyId,
-        x: original.x + duplicateOffset,
-        y: original.y + duplicateOffset,
       });
       commitScene(replaceObjects([...state.scene.objects, copy]), { selectedId: copyId });
     },

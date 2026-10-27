@@ -1,5 +1,5 @@
-import type { SceneObject } from '@light-lab/engine';
-import type { Store } from '../store';
+import { defaultSettings, type GridSettings, type SceneObject } from '@light-lab/engine';
+import { type Store, snapToGrid } from '../store';
 
 export type KeyEdit = Partial<Pick<SceneObject, 'x' | 'y' | 'angle'>>;
 
@@ -10,18 +10,21 @@ export function keyToSceneEdit(
   key: string,
   shiftKey: boolean,
   object: SceneObject,
+  grid: GridSettings = defaultSettings.grid,
 ): KeyEdit | null {
-  const nudge = shiftKey ? 10 : 1;
+  // While snapping, any smaller nudge would snap back to the grid line it started on.
+  const nudge = grid.snap ? grid.size : shiftKey ? 10 : 1;
+  const place = (value: number) => (grid.snap ? snapToGrid(value, grid.size) : value);
   switch (key) {
     case 'ArrowLeft':
-      return { x: object.x - nudge };
+      return { x: place(object.x - nudge) };
     case 'ArrowRight':
-      return { x: object.x + nudge };
+      return { x: place(object.x + nudge) };
     // Bench y grows downward, like the screen.
     case 'ArrowUp':
-      return { y: object.y - nudge };
+      return { y: place(object.y - nudge) };
     case 'ArrowDown':
-      return { y: object.y + nudge };
+      return { y: place(object.y + nudge) };
     case '[':
       return { angle: object.angle - rotateStep };
     case ']':
@@ -49,7 +52,7 @@ export function applyKeyEdit(store: Store, press: KeyPress): boolean {
   const { scene, selectedId } = store.getState();
   const selected = scene.objects.find((object) => object.id === selectedId);
   if (!selected) return false;
-  const edit = keyToSceneEdit(press.key, press.shiftKey, selected);
+  const edit = keyToSceneEdit(press.key, press.shiftKey, selected, scene.settings.grid);
   if (!edit) return false;
   store.updateObject(selected.id, edit);
   return true;

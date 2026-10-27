@@ -40,7 +40,8 @@ test('one finger drags an object and two fingers pinch-zoom the bench', async ({
   const middle = { x: box.x + box.width / 2, y: box.y + 24 };
   await touch(session, 'touchStart', [{ ...middle, id: 1 }]);
   await touch(session, 'touchEnd', []);
-  const scaleBar = page.getByText(/^[\d.]+ mm$/);
+  // Only the scale bar's label is a span; the grid size chips with the same text are buttons.
+  const scaleBar = page.locator('span').getByText(/^[\d.]+ mm$/);
   const scaleBefore = await scaleBar.textContent();
 
   await touch(session, 'touchStart', [

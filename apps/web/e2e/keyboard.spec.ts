@@ -75,3 +75,26 @@ test('the bench can be built and edited from the keyboard alone', async ({ page 
   await material.click();
   await expect(redo).toBeEnabled();
 });
+
+test('with snapping on, an arrow key moves the selected object from grid line to grid line', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const settings = inspector(page).getByRole('region', { name: 'Scene settings' });
+  await settings
+    .getByRole('group', { name: 'Grid size' })
+    .getByRole('button', { name: '25 mm' })
+    .click();
+  await settings
+    .getByRole('group', { name: 'Snap to grid' })
+    .getByRole('button', { name: 'On' })
+    .click();
+  await page.getByRole('button', { name: 'Add lens' }).click();
+  const placedX = await inspectorX(page);
+  expect(placedX % 25).toBe(0);
+  await benchArea(page).focus();
+  await page.keyboard.press('ArrowRight');
+  expect(await inspectorX(page)).toBe(placedX + 25);
+  await page.keyboard.press('ArrowRight');
+  expect(await inspectorX(page)).toBe(placedX + 50);
+});

@@ -1,7 +1,15 @@
 import { examples } from '@light-lab/engine';
 import { describe, expect, it } from 'vitest';
 import { extentOf } from './shapes';
-import { benchToScreen, fitView, freeArea, maxScale, screenToBench, zoomAt } from './view';
+import {
+  benchToScreen,
+  fitView,
+  freeArea,
+  gridStepOnScreen,
+  maxScale,
+  screenToBench,
+  zoomAt,
+} from './view';
 
 const size = { width: 1200, height: 800 };
 
@@ -76,5 +84,22 @@ describe('fitView', () => {
     );
     expect(centre.x).toBeCloseTo(0, 9);
     expect(centre.y).toBeCloseTo(0, 9);
+  });
+});
+
+describe('gridStepOnScreen', () => {
+  it('draws the chosen grid size when its lines are far enough apart', () => {
+    expect(gridStepOnScreen(10, 2)).toBe(10);
+  });
+
+  // A 0.01 mm grid zoomed out would be millions of lines: too slow to draw and a grey wash.
+  it('draws every fifth line, repeatedly, until lines are at least 8 px apart', () => {
+    expect(gridStepOnScreen(1, 2)).toBe(5);
+    expect(gridStepOnScreen(0.01, 0.05)).toBeCloseTo(0.01 * 5 ** 7, 9);
+  });
+
+  it('keeps every drawn line on a grid line objects snap to', () => {
+    const step = gridStepOnScreen(2.5, 0.3);
+    expect(Math.abs(Math.round(step / 2.5) - step / 2.5)).toBeLessThan(1e-9);
   });
 });
