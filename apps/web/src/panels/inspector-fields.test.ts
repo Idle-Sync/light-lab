@@ -1,9 +1,17 @@
-import { examples, type Material, refractiveIndex, thickLensFocalLength } from '@light-lab/engine';
+import {
+  examples,
+  fieldRanges,
+  type Material,
+  refractiveIndex,
+  thickLensFocalLength,
+} from '@light-lab/engine';
 import { describe, expect, it } from 'vitest';
 import { createStore, type Store } from '../store';
 import {
   focalLengthInput,
+  kindFields,
   lensFocalLength,
+  lensRadiusFields,
   physicalPatch,
   pickChip,
   sliderInput,
@@ -113,5 +121,24 @@ describe('focalLengthInput', () => {
     }
     store.finishEdit();
     expect(countUndoSteps(store)).toBe(1);
+  });
+});
+
+describe('inspector sliders', () => {
+  it('every slider shows the range the schema accepts', () => {
+    const ranges: Record<
+      string,
+      Record<string, { min: number; max: number }>
+    > = fieldRanges as unknown as Record<string, Record<string, { min: number; max: number }>>;
+    for (const [kind, fields] of Object.entries(kindFields)) {
+      for (const field of fields) {
+        if (field.type !== 'slider') continue;
+        const expected = field.key === 'angle' ? fieldRanges.angle : ranges[kind][field.key];
+        expect(field, `${kind} ${field.key}`).toMatchObject(expected);
+      }
+    }
+    for (const field of lensRadiusFields) {
+      expect(field).toMatchObject(ranges.lens[field.key]);
+    }
   });
 });

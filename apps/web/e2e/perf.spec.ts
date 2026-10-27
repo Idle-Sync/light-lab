@@ -98,7 +98,9 @@ test('the engine stays inside its budget at a 4x slower CPU', async ({ page }) =
 test('the magnifier eye analysis stays inside its budget at a 4x slower CPU', async ({ page }) => {
   const slowdown = await workerSlowdown(page, await page.context().newCDPSession(page));
   await openForNudging(page, examples.magnifier, 3);
-  expect((await medianTiming(page, 'data-eye-ms')) * slowdown).toBeLessThan(100);
+  const eyeMs = (await medianTiming(page, 'data-eye-ms')) * slowdown;
+  test.info().annotations.push({ type: 'magnifier eye', description: `${eyeMs.toFixed(1)} ms` });
+  expect(eyeMs).toBeLessThan(100);
 });
 
 test('panning and zooming redraw within a frame and never retrace', async ({ page }) => {

@@ -59,4 +59,16 @@ describe('last scene', () => {
     storage.setItem('light-lab:last-scene', '{"v":0}');
     expect(loadLastScene(storage)).toBeNull();
   });
+
+  it('returns null when the saved scene has a field past its range', () => {
+    const storage = memoryStorage();
+    const scene = {
+      v: 2,
+      objects: [
+        { id: 1, kind: 'point', x: 0, y: 0, angle: 0, cone: 30, rays: 1e9, spectrum: 'white' },
+      ],
+    };
+    storage.setItem('light-lab:last-scene', JSON.stringify(scene));
+    expect(loadLastScene(storage)).toBeNull();
+  });
 });
