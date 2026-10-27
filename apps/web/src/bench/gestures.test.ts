@@ -1,7 +1,7 @@
-import { examples } from '@light-lab/engine';
+import { examples, type SceneObject } from '@light-lab/engine';
 import { describe, expect, it, vi } from 'vitest';
 import { createStore, type Store } from '../store';
-import { type CanvasBox, createGestures, type PointerInput } from './gestures';
+import { type CanvasBox, createGestures, objectContains, type PointerInput } from './gestures';
 import { benchToScreen, screenToBench } from './view';
 
 // The canvas sits 50 px from the left and 60 px from the top of the window.
@@ -252,5 +252,27 @@ describe('rotate handle', () => {
     gestures.pointerUp(pointerAtAngle(store, 50));
     store.undo();
     expect(store.getState().scene).toEqual(examples.bench);
+  });
+});
+
+describe('picking an eye', () => {
+  // Looking toward -x, so the eyeball sits on the +x side of the pupil.
+  const eye: SceneObject = {
+    kind: 'eye',
+    id: 1,
+    x: 0,
+    y: 0,
+    angle: 180,
+    pupil: 4,
+    fieldOfView: 70,
+  };
+
+  // A real eyeball is about 24 mm across; clicking anywhere on the drawn ball picks it.
+  it('counts a click on the back of the 24 mm eyeball', () => {
+    expect(objectContains(eye, { x: 22, y: 0 }, 1)).toBe(true);
+  });
+
+  it('leaves a click in front of the pupil alone', () => {
+    expect(objectContains(eye, { x: -6, y: 0 }, 1)).toBe(false);
   });
 });

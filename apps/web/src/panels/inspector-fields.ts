@@ -126,7 +126,8 @@ export const kindFields: Record<ObjectKind, Field[]> = {
   detector: [slider('Length', 'length', 2, 300, ' mm'), angle('Angle')],
   ruler: [slider('Length', 'length', 1, 500, ' mm', 0.5), angle('Angle')],
   eye: [
-    slider('Pupil diameter', 'pupil', 1, 40, ' mm'),
+    // A human pupil opens from about 2 mm in bright light to 8 mm in the dark.
+    slider('Pupil diameter', 'pupil', 1, 10, ' mm'),
     slider('Field of view', 'fieldOfView', 10, 170, '°'),
     angle('Looking toward'),
   ],

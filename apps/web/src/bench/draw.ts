@@ -18,6 +18,7 @@ import {
   arcMirrorShapeOf,
   degrees,
   extentOf,
+  eyeballRadius,
   lensShapeOf,
   type Point,
   prismCornersOf,
@@ -306,8 +307,8 @@ function drawEye(
   context.closePath();
   context.fill();
 
-  const ballRadius = Math.max(eye.pupil * 0.75, 8 * pixel);
-  const ballCentre = toBench(eye, -ballRadius * 0.75, 0);
+  const ballRadius = Math.max(eyeballRadius, 8 * pixel);
+  const ballCentre = toBench(eye, -ballRadius, 0);
   context.beginPath();
   context.arc(ballCentre.x, ballCentre.y, ballRadius, 0, 2 * Math.PI);
   context.fillStyle = 'rgba(230,232,236,0.07)';
@@ -315,12 +316,6 @@ function drawEye(
   context.lineWidth = (selected ? 1.6 : 1) * pixel;
   context.strokeStyle = selected ? sodium : 'rgba(230,232,236,0.6)';
   context.stroke();
-
-  const iris = toBench(eye, -ballRadius * 0.25, 0);
-  context.fillStyle = selected ? sodium : chalk;
-  context.beginPath();
-  context.arc(iris.x, iris.y, Math.min(ballRadius * 0.35, eye.pupil / 2), 0, 2 * Math.PI);
-  context.fill();
 
   const pupilTop = toBench(eye, 0, -eye.pupil / 2);
   const pupilBottom = toBench(eye, 0, eye.pupil / 2);

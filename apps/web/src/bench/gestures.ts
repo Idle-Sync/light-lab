@@ -1,6 +1,6 @@
 import { lensThickness, type SceneObject } from '@light-lab/engine';
 import { type Store, snapToGrid, type View } from '../store';
-import { arcMirrorShapeOf, type Point, radians, rotateHandleOf } from './shapes';
+import { arcMirrorShapeOf, eyeballRadius, type Point, radians, rotateHandleOf } from './shapes';
 import { benchToScreen, clampScale, screenToBench, viewPlacing, zoomAt } from './view';
 
 export interface PointerInput {
@@ -62,7 +62,8 @@ export function objectContains(object: SceneObject, point: Point, tolerance: num
     case 'point':
       return Math.hypot(dx, dy) < tolerance * 1.5;
     case 'eye':
-      return Math.hypot(dx, dy) < object.pupil * 0.9 + tolerance;
+      // The eyeball sits behind the pupil, centred one radius back along the line of sight.
+      return Math.hypot(along + eyeballRadius, across) < eyeballRadius + tolerance;
     case 'object':
       return (
         Math.abs(along) < tolerance && across < tolerance && across > -object.height - tolerance

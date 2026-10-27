@@ -5,6 +5,9 @@ export interface Point {
   y: number;
 }
 
+/** A human eyeball is about 24 mm across; the eye is drawn and picked at that size. */
+export const eyeballRadius = 12;
+
 export function radians(degrees: number): number {
   return (degrees * Math.PI) / 180;
 }
@@ -38,7 +41,7 @@ export function extentOf(object: SceneObject): number {
     case 'object':
       return 4;
     case 'eye':
-      return object.pupil * 0.75 + 4;
+      return 2 * eyeballRadius;
     default:
       return object.length / 2;
   }
@@ -58,7 +61,7 @@ export function perpendicularExtentOf(object: SceneObject): number {
     case 'object':
       return object.height;
     case 'eye':
-      return object.pupil * 0.75;
+      return eyeballRadius;
     default:
       return 0;
   }
