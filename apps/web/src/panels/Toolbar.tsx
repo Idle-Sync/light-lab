@@ -1,6 +1,8 @@
 import type { ObjectKind } from '@light-lab/engine';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { store } from '../store';
+import { toolDescriptions } from './tool-descriptions';
 
 // The visible text is short for the narrow bar; the accessible name says the whole action.
 const tools: Array<{ kind: ObjectKind; text: string; name: string }> = [
@@ -26,16 +28,22 @@ export function Toolbar() {
       className="absolute top-4 left-4 flex max-h-[calc(100%-2rem)] w-20 flex-col gap-1 overflow-y-auto rounded-[14px] border border-rule bg-bench/90 p-1.5 max-[760px]:top-auto max-[760px]:right-3 max-[760px]:bottom-[68px] max-[760px]:left-3 max-[760px]:w-auto max-[760px]:flex-row max-[760px]:overflow-x-auto"
     >
       {tools.map((tool) => (
-        <Button
-          key={tool.kind}
-          type="button"
-          variant="ghost"
-          size="sm"
-          aria-label={tool.name}
-          onClick={() => store.addObject(tool.kind)}
-        >
-          {tool.text}
-        </Button>
+        <Tooltip key={tool.kind}>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label={tool.name}
+              onClick={() => store.addObject(tool.kind)}
+            >
+              {tool.text}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {toolDescriptions[tool.kind].what} {toolDescriptions[tool.kind].use}
+          </TooltipContent>
+        </Tooltip>
       ))}
     </div>
   );

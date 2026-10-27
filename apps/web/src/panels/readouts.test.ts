@@ -7,6 +7,7 @@ describe('lensLabel', () => {
     expect(result.value).toBe('converging, f = +50.1 mm');
     expect(result.theory).toBe('thick-lens +50.1 mm, traced +49.8 mm');
     expect(result.assumes).not.toBe('');
+    expect(result.explanation).not.toBe('');
   });
 
   it('says diverging for a negative focal length', () => {
@@ -70,6 +71,16 @@ describe('percent and readout', () => {
   });
 
   it('refuses a readout without an assumes line', () => {
-    expect(() => readout('Length', '5 mm', '')).toThrow();
+    expect(() => readout('Length', '5 mm', '', 'How long it is.')).toThrow();
+  });
+
+  it('refuses a readout without an explanation', () => {
+    expect(() => readout('Length', '5 mm', 'Plain geometry.', '')).toThrow();
+  });
+
+  it('keeps the explanation and the theory text it is given', () => {
+    const result = readout('Length', '5 mm', 'Plain geometry.', 'How long it is.', 'five');
+    expect(result.explanation).toBe('How long it is.');
+    expect(result.theory).toBe('five');
   });
 });
