@@ -329,6 +329,14 @@ describe('drawEyeStrip', () => {
     expect(faintAlone.innerColor).toMatch(new RegExp(`,${spotAlpha(0.01)}\\)$`));
   });
 
+  // The strip is a picture of the view: drawn taller, its spots grow with it.
+  it('scales its spots with the strip height', () => {
+    const group = eyeGroup({ power: 0.01 });
+    const tall = new RecordingContext();
+    drawEyeStrip(tall, analysisOf([group]), 70, { ...rect, height: 240 });
+    expect(tall.spots[0].radius).toBe(spotRadius * 4);
+  });
+
   it('leaves out groups outside the field of view', () => {
     const context = new RecordingContext();
     drawEyeStrip(context, analysisOf([eyeGroup({ visible: false })]), 70, rect);
@@ -474,6 +482,7 @@ describe('drawBench', () => {
       view: { scale: 2, offsetX: 0, offsetY: 0 },
       results: results(eye),
       size: { width: 1200, height: 800 },
+      eyeStripHeight: 60,
     });
     const texts = context.texts.map((text) => text.text);
     expect(texts).toContain('RMS 250 µm');
@@ -493,6 +502,7 @@ describe('drawBench', () => {
       view: { scale: 2, offsetX: 0, offsetY: 0 },
       results: null,
       size: { width: 1200, height: 800 },
+      eyeStripHeight: 60,
     });
     expect(context.texts.filter((text) => text.text === 'F')).toHaveLength(2);
   });
@@ -505,6 +515,7 @@ describe('drawBench', () => {
       view: { scale: 2, offsetX: 0, offsetY: 0 },
       results: null,
       size: { width: 1200, height: 800 },
+      eyeStripHeight: 60,
     });
     expect(context.texts.filter((text) => text.text === 'F')).toHaveLength(0);
   });
@@ -517,6 +528,7 @@ describe('drawBench', () => {
       view: { scale: 2, offsetX: 0, offsetY: 0 },
       results: null,
       size: { width: 1200, height: 800 },
+      eyeStripHeight: 60,
     });
     expect(context.strokes.length).toBeGreaterThan(0);
   });

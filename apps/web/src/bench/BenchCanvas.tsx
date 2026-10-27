@@ -1,6 +1,6 @@
 import p5 from 'p5';
 import { type KeyboardEvent, useEffect, useRef } from 'react';
-import { store } from '../store';
+import { eyeStripHeights, store } from '../store';
 import { setCanvasStatus } from './canvas-status';
 import { drawBench } from './draw';
 import { createGestures } from './gestures';
@@ -53,13 +53,14 @@ export function BenchCanvas() {
       };
       sketch.draw = () => {
         const start = performance.now();
-        const { scene, selectedId, view, results } = store.getState();
+        const { scene, selectedId, view, results, eyeView } = store.getState();
         drawBench(context2dOf(sketch), {
           scene,
           selectedId,
           view,
           results,
           size: { width: sketch.width, height: sketch.height },
+          eyeStripHeight: eyeStripHeights[eyeView],
         });
         setCanvasStatus({ frameMs: performance.now() - start });
       };

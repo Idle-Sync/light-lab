@@ -19,10 +19,16 @@ export interface View {
   offsetY: number;
 }
 
+export type EyeViewSize = 'small' | 'medium' | 'large';
+
+/** Height in pixels of the "what the eye sees" strip for each size. */
+export const eyeStripHeights: Record<EyeViewSize, number> = { small: 60, medium: 130, large: 240 };
+
 export interface AppState {
   scene: Scene;
   selectedId: number | null;
   view: View;
+  eyeView: EyeViewSize;
   results: SceneResults | null;
   traceCount: number;
   linkError: string | null;
@@ -145,6 +151,7 @@ export function createStore(initialScene: Scene) {
     scene: initialScene,
     selectedId: null,
     view: { scale: 2, offsetX: 0, offsetY: 0 },
+    eyeView: 'medium',
     results: null,
     traceCount: 0,
     linkError: null,
@@ -246,6 +253,10 @@ export function createStore(initialScene: Scene) {
 
     setView(patch: Partial<View>): void {
       setState({ view: { ...state.view, ...patch } });
+    },
+
+    setEyeView(eyeView: EyeViewSize): void {
+      setState({ eyeView });
     },
 
     setSettings(patch: Partial<Settings>): void {

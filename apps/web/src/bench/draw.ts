@@ -66,6 +66,8 @@ export interface BenchFrame {
   view: View;
   results: SceneResults | null;
   size: CanvasSize;
+  /** Height in pixels of the strip showing what the eye sees. */
+  eyeStripHeight: number;
 }
 
 type Rgb = [number, number, number];
@@ -823,7 +825,9 @@ function drawEyePanel(
   const left = narrow ? 16 : 92;
   const right = narrow ? width - 16 : width - 332;
   const panelWidth = Math.min(760, right - left);
-  const panelHeight = 134;
+  // The panel never covers more than half the bench, whatever size is picked.
+  const stripHeight = Math.min(frame.eyeStripHeight, height / 2 - 74);
+  const panelHeight = stripHeight + 74;
   const panel = {
     x: left + (right - left - panelWidth) / 2,
     y: height - 72 - panelHeight,
@@ -848,7 +852,7 @@ function drawEyePanel(
   context.font = labelFont;
   context.fillText(eyeSummary(analysis), panel.x + panel.width - 14, panel.y + 14);
 
-  const strip = { x: panel.x + 14, y: panel.y + 38, width: panel.width - 28, height: 60 };
+  const strip = { x: panel.x + 14, y: panel.y + 38, width: panel.width - 28, height: stripHeight };
   drawEyeStrip(context, analysis, eye.fieldOfView, strip);
 
   const halfField = Math.round(eye.fieldOfView / 2);
@@ -876,6 +880,8 @@ export function drawEyeStrip(
   strip: Rect,
 ): void {
   const middleY = strip.y + strip.height / 2;
+  // Spots are sized for the 60 px strip and grow with a taller one, like a zoomed picture.
+  const radius = (spotRadius * strip.height) / 60;
   context.globalCompositeOperation = 'source-over';
   context.fillStyle = '#000';
   context.beginPath();
@@ -909,11 +915,11 @@ export function drawEyeStrip(
     if (!group.visible || group.power < faintestShownPower) continue;
     const color = wavelengthColor(group.nm);
     const x = xOf(group.angle);
-    const glow = context.createRadialGradient(x, middleY, 0, x, middleY, spotRadius);
+    const glow = context.createRadialGradient(x, middleY, 0, x, middleY, radius);
     glow.addColorStop(0, rgba(color, spotAlpha(group.power)));
     glow.addColorStop(1, rgba(color, 0));
     context.fillStyle = glow;
-    context.fillRect(x - spotRadius, middleY - spotRadius, 2 * spotRadius, 2 * spotRadius);
+    context.fillRect(x - radius, middleY - radius, 2 * radius, 2 * radius);
     const chain = chains.get(chainKey(group)) ?? [];
     chain.push(group);
     chains.set(chainKey(group), chain);

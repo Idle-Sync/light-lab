@@ -274,9 +274,28 @@ function eyeRowView(row: EyeRow): EyeRowView {
   };
 }
 
+function EyeViewSize() {
+  const eyeView = useAppState((state) => state.eyeView);
+  return (
+    <Chips
+      label="What the eye sees, panel size"
+      options={[
+        { value: 'small', label: 'Small' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'large', label: 'Large' },
+      ]}
+      isOn={(value) => value === eyeView}
+      onPick={(value) => {
+        if (value === 'small' || value === 'medium' || value === 'large') store.setEyeView(value);
+      }}
+    />
+  );
+}
+
 function SightLines(props: { on: boolean }) {
   return (
     <>
+      <EyeViewSize />
       <Chips
         label="Sight lines"
         options={[

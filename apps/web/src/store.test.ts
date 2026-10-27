@@ -192,6 +192,15 @@ describe('store edits', () => {
     expect(store.canUndo()).toBe(false);
   });
 
+  it('sizes the eye view without touching the scene or its history', () => {
+    const store = createStore(examples.bench);
+    const scene = store.getState().scene;
+    store.setEyeView('large');
+    expect(store.getState().eyeView).toBe('large');
+    expect(store.getState().scene).toBe(scene);
+    expect(store.canUndo()).toBe(false);
+  });
+
   it('counts every delivered result', () => {
     const store = createStore(examples.bench);
     const results = {
