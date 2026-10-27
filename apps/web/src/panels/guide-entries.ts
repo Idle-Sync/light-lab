@@ -444,7 +444,7 @@ export const rayModelSections: RayModelSection[] = [
   {
     heading: 'Refraction',
     model:
-      "Where a ray meets glass it bends by Snell's law, n1 sin θ1 = n2 sin θ2. When light inside the glass meets the surface too steeply to get out, all of it reflects: total internal reflection.",
+      "Where a ray meets glass it bends by Snell's law, n1 sin θ1 = n2 sin θ2. When light inside the glass meets the surface past the critical angle, too glancing to get out, all of it reflects: total internal reflection.",
     assumes: 'Surfaces are perfectly smooth, and the glass is clear and absorbs no light.',
   },
   {
@@ -465,7 +465,7 @@ export const rayModelSections: RayModelSection[] = [
     model:
       "A ray is followed from surface to surface until no surface lies ahead or it meets a blocker, a detector or an eye. A ray is dropped once it carries less than 0.2 % of the light it started with in the drawing, or 0.001 % in the eye's own pass, and it stops once it has met more than 40 surfaces. Hits 1e-6 mm or closer are ignored, as they are the surface the ray has just left.",
     assumes:
-      "Light dropped by these limits is too faint to change what is drawn or measured; one drawing traces at most 40,000 segments and the eye's pass at most 400,000.",
+      "A ray dropped for being under 0.2 % or 0.001 % is too faint to change what is drawn or measured. The other limits can cut off bright light in very busy scenes: one drawing traces at most 40,000 segments and the eye's pass at most 400,000, and light still waiting to be traced at that cap, whole sources included, is lost; a ray that has met more than 40 surfaces stops however bright it is.",
   },
   {
     heading: 'Brightness',

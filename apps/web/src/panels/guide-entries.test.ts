@@ -10,7 +10,7 @@ import {
 } from './guide-entries';
 import { kindFields, kindTitles } from './inspector-fields';
 import { objectReadouts } from './object-readouts';
-import { detectorReadout } from './readouts';
+import { detectorReadout, type Readout } from './readouts';
 import { toolDescriptions } from './tool-descriptions';
 
 const kinds = Object.keys(kindTitles) as ObjectKind[];
@@ -50,22 +50,20 @@ function analysisOf(eyeId: number): EyeAnalysis {
   };
 }
 
-/** Every assumes string the inspector can show for one object of `kind`. */
-function inspectorAssumes(kind: ObjectKind): string[] {
+/** Every readout the inspector can show for one object of `kind`, unlit and lit, in 2D and 3D. */
+function inspectorReadouts(kind: ObjectKind): Readout[] {
   const object = sampleObjects[kind];
-  const assumes: string[] = [];
+  const shown: Readout[] = [];
   for (const brightness of ['2d', '3d'] as const) {
     for (const reading of [undefined, litDetectorReading]) {
-      for (const item of objectReadouts(object, reading, brightness)) assumes.push(item.assumes);
+      shown.push(...objectReadouts(object, reading, brightness));
     }
   }
   if (kind === 'eye') {
-    for (const item of eyeReadouts(null, object.id).readouts) assumes.push(item.assumes);
-    for (const item of eyeReadouts(analysisOf(object.id), object.id).readouts) {
-      assumes.push(item.assumes);
-    }
+    shown.push(...eyeReadouts(null, object.id).readouts);
+    shown.push(...eyeReadouts(analysisOf(object.id), object.id).readouts);
   }
-  return assumes;
+  return shown;
 }
 
 describe('toolGuide', () => {
@@ -91,7 +89,9 @@ describe('toolGuide', () => {
 
   it('takes its readouts from the inspector, not from hand-written text', () => {
     for (const kind of kinds) {
-      expect(toolGuide[kind].readouts).toEqual(guideReadouts(kind));
+      const shownLabels = new Set(inspectorReadouts(kind).map((item) => item.label));
+      const guideLabels = toolGuide[kind].readouts.map((item) => item.label);
+      expect(guideLabels, kind).toEqual([...shownLabels]);
     }
     const lens = objectReadouts(sampleObjects.lens, undefined, '2d');
     expect(guideReadouts('lens')).toEqual(
@@ -120,7 +120,7 @@ describe('toolGuide', () => {
   it('states every assumption the inspector shows, each in plain words', () => {
     for (const kind of kinds) {
       const listed = toolGuide[kind].assumptions.map((item) => item.assumes);
-      for (const assumes of inspectorAssumes(kind)) expect(listed, kind).toContain(assumes);
+      for (const item of inspectorReadouts(kind)) expect(listed, kind).toContain(item.assumes);
       expect(toolGuide[kind].assumptions.length, kind).toBeGreaterThan(0);
       for (const item of toolGuide[kind].assumptions) {
         expect(item.meaning, `${kind}: ${item.assumes}`).toMatch(/^[A-Z].*\.$/);

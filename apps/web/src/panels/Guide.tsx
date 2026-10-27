@@ -64,6 +64,9 @@ export function Guide() {
         // Set explicitly rather than trusting each browser's dialog focus restore: a keyboard user
         // expects to land back on the button that opened the guide.
         onClose={() => openButton.current?.focus()}
+        // The editing shortcuts listen on window; without this, Backspace or Cmd+Z pressed in the
+        // guide would edit the bench hidden behind it. Escape still closes the dialog natively.
+        onKeyDown={(event) => event.stopPropagation()}
         className="m-auto max-h-[85vh] w-[min(48rem,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-rule bg-bench p-0 text-chalk backdrop:bg-black/70"
       >
         <div className="sticky top-0 flex items-center justify-between border-b border-rule bg-bench px-4 py-3">
