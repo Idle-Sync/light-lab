@@ -127,6 +127,18 @@ Beginner bench (milestone 2)
   "Virtual image" and "Real image" labels on the bench; the eyeball drawn at a real eye's
   24 mm; pupil from 1 to 10 mm; the "what the eye sees" panel in small, medium and large —
   done when: tests cover the switch, the labels, eye picking at 24 mm and the panel sizes.
+- Images without an eye: for every extended object, where its images are after each mirror,
+  lens or ball path, drawn like a textbook ray diagram whether or not the scene has an eye. A
+  virtual image (only the backward extensions of the rays meet) is a dashed arrow with dashed
+  extension lines back to it; a real image (the rays themselves meet) is a solid arrow where a
+  screen or detector would catch it. Each image is labelled with its kind, orientation and
+  size ("Virtual image, upright, same size", "Real image, upside down, 2× larger"). Images come
+  from the rays near the axis, so for a lens with aberration the image is the paraxial one,
+  drawn blurred where the rays do not meet at one point; an eye's own view stays exact. A
+  "Show images" switch in the scene settings, on by default and saved with the scene — done
+  when: a flat mirror's virtual image sits at the mirror distance behind it, upright and the
+  same size, within 0.01 mm; a converging lens with the object beyond 2f gives a real image
+  upside down and smaller at the thin-lens distance within 2 %; switching it off draws none.
 - Lens set by focal length: a focal length slider solves the thick-lens equation for equal
   radii, radii under "Advanced"; F markers at the traced focal points of a selected lens,
   curved mirror or ball — done when: the slider's value is the focal length the label shows
@@ -166,9 +178,8 @@ Learn playlist (milestone 4)
   each step's check is a pure function tested against a passing and a failing scene.
 - Lessons can be replayed any number of times; a first visit opens the playlist — done when: a
   test restarts a finished lesson from its first step.
-- Image orientation readout: upright or upside down for every image the eye sees — done when:
-  a real image through a converging lens reads upside down and the magnifier's virtual image
-  reads upright in tests.
+- Lessons on real images, the magnifier and the spoon use the image arrows and their
+  orientation labels from milestone 2's "Images without an eye".
 
 Physical eye, vision and camera (milestone 5)
 
@@ -307,9 +318,10 @@ Milestones are a build order, not dates; each ends deployed and usable.
    storage, undo and redo, touch, WCAG AA, the ray oracles in CI, bounded scene fields,
    deployed on Vercel. Users can test the eye hypothesis from this release.
 2. Beginner bench — clean slate, free placement, tooltips, grid and snapping, the readable eye,
-   lenses set by focal length, the teaching detector, the Guide page.
+   images shown without an eye, lenses set by focal length, the teaching detector, the Guide
+   page.
 3. Lens and mirror shapes — concave and meniscus lenses, custom 2D shapes.
-4. Learn playlist — guided, replayable ray lessons; image orientation.
+4. Learn playlist — guided, replayable ray lessons.
 5. Physical eye, vision and camera — the model eye, vision conditions with spectacles and
    suggested power, colour vision deficiency, camera projections, the offline PWA.
 6. Rough surfaces — scattering that lets the eye see matte objects, within the speed budgets.
