@@ -82,8 +82,9 @@ export function imagesOf(scene: Scene): ImageArrow[] {
       if (pairCount >= maxObjectOpticPairs || arrows.length >= maxImageArrows) return arrows;
       pairCount += 1;
       for (const arrow of arrowsThrough(scene, opticalBench, source, optic)) {
+        if (arrows.length >= maxImageArrows) return arrows;
         const key = `${arrow.sourceId}|${arrow.path}`;
-        if (imagedPaths.has(key) || arrows.length >= maxImageArrows) continue;
+        if (imagedPaths.has(key)) continue;
         imagedPaths.add(key);
         arrows.push(arrow);
       }
@@ -127,19 +128,7 @@ function arrowsThrough(
       aimedSource(tipSourceId, tip, optic, nm),
     ],
   };
-  const baseRays = new Map<string, TracedRay[]>();
-  const tipRays = new Map<string, TracedRay[]>();
-  followRays(traced, 'drawing', {
-    onSegment(ray) {
-      if (ray.path === '' || !isInAir(ray.path)) return;
-      const groups = ray.sourceId === baseSourceId ? baseRays : tipRays;
-      const group = groups.get(ray.path) ?? [];
-      group.push(ray);
-      groups.set(ray.path, group);
-    },
-    onDetector() {},
-    onEye() {},
-  });
+  const { baseRays, tipRays } = airRaysByPath(traced);
 
   const chiefDirection = { x: optic.x - base.x, y: optic.y - base.y };
   const objectVector = { x: tip.x - base.x, y: tip.y - base.y };
@@ -173,6 +162,24 @@ function arrowsThrough(
     });
   }
   return arrows;
+}
+
+/** The segments outside glass that have met a surface, per end and by path. */
+function airRaysByPath(traced: Scene) {
+  const baseRays = new Map<string, TracedRay[]>();
+  const tipRays = new Map<string, TracedRay[]>();
+  followRays(traced, 'drawing', {
+    onSegment(ray) {
+      if (ray.path === '' || !isInAir(ray.path)) return;
+      const groups = ray.sourceId === baseSourceId ? baseRays : tipRays;
+      const group = groups.get(ray.path) ?? [];
+      group.push(ray);
+      groups.set(ray.path, group);
+    },
+    onDetector() {},
+    onEye() {},
+  });
+  return { baseRays, tipRays };
 }
 
 /** Whether a ray with this path is outside glass: every refraction into glass has one out. */
