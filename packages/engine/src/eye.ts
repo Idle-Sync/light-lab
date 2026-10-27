@@ -88,14 +88,19 @@ export function analyzeEye(scene: Scene, eyeId: number): EyeAnalysis {
   const facingX = Math.cos(radians(eye.angle));
   const facingY = Math.sin(radians(eye.angle));
   const tallies = new Map<string, GroupTally>();
-  followRays(scene, 'eye', {
-    onSegment() {},
-    onDetector() {},
-    onEye(ray, surface, hit) {
-      const fromTheFront = ray.dx * facingX + ray.dy * facingY < 0;
-      if (surface.object.id === eye.id && fromTheFront) recordPupilHit(tallies, ray, hit);
+  followRays(
+    scene,
+    'eye',
+    {
+      onSegment() {},
+      onDetector() {},
+      onEye(ray, surface, hit) {
+        const fromTheFront = ray.dx * facingX + ray.dy * facingY < 0;
+        if (surface.object.id === eye.id && fromTheFront) recordPupilHit(tallies, ray, hit);
+      },
     },
-  });
+    eye,
+  );
 
   const groups: EyeGroup[] = [];
   let totalIntoPupil = 0;

@@ -9,7 +9,7 @@ import {
   toBench,
 } from './geometry';
 import { refractiveIndex, spectrumOf } from './materials';
-import type { Scene, SceneObject, Settings } from './scene';
+import { fieldRanges, type Scene, type SceneObject, type Settings } from './scene';
 import { buildSurfaceGrid, nearestHit, noHitLength } from './spatial-grid';
 
 export interface DetectorReading {
@@ -78,14 +78,22 @@ const emittingPointsPerObject = 9;
 const detectorBins = 48;
 
 type Source = Extract<SceneObject, { kind: 'point' | 'beam' | 'object' }>;
+type Eye = Extract<SceneObject, { kind: 'eye' }>;
 
-/** The rays a source sends out; empty for objects that do not emit. */
-export function emitRays(object: SceneObject, pass: TracePass): TracedRay[] {
+/** The eye's pupil diameter and the distance from a source to the farthest object, in mm. */
+export interface PupilAim {
+  pupil: number;
+  reach: number;
+}
+
+/** The rays a source sends out; empty for objects that do not emit. With `aim`, the eye pass
+ *  spaces a cone's rays to the pupil's size instead of a ray every 0.05°. */
+export function emitRays(object: SceneObject, pass: TracePass, aim?: PupilAim): TracedRay[] {
   if (object.kind !== 'point' && object.kind !== 'beam' && object.kind !== 'object') return [];
   const wavelengths = spectrumOf(object.spectrum);
   const alpha = wavelengths.length > 1 ? 0.42 : 0.85;
   const points = emittingPoints(object, pass);
-  const count = raysPerPoint(object, pass);
+  const count = raysPerPoint(object, pass, aim);
   const weight = 1 / (count * wavelengths.length * points.length);
 
   const rays: TracedRay[] = [];
@@ -139,25 +147,51 @@ function emittingPoints(source: Source, pass: TracePass): Array<Point & { index:
   return points;
 }
 
-function raysPerPoint(source: Source, pass: TracePass): number {
-  const asked = Math.max(1, Math.round(source.rays));
+function raysPerPoint(source: Source, pass: TracePass, aim?: PupilAim): number {
+  const asked = Math.min(fieldRanges[source.kind].rays.max, Math.max(1, Math.round(source.rays)));
   if (pass === 'drawing') return asked;
-  // The eye pass samples densely: a ray every 0.08 mm of beam or every 0.05° of cone.
+  // The eye pass: a ray every 0.08 mm of beam; for a cone, one every 0.05° or, aimed at a pupil,
+  // 24 across the angle it spans at the scene's farthest distance, kept within 0.05° to 1°.
   if (source.kind === 'beam')
     return Math.min(800, Math.max(asked, Math.round(source.width / 0.08)));
-  return Math.min(1000, Math.max(asked, Math.round(Math.min(360, source.cone) / 0.05)));
+  let spacingDegrees = 0.05;
+  if (aim) {
+    const pupilDegrees = (Math.atan(aim.pupil / aim.reach) * 180) / Math.PI;
+    spacingDegrees = Math.min(1, Math.max(0.05, pupilDegrees / 24));
+  }
+  return Math.min(1000, Math.max(asked, Math.round(Math.min(360, source.cone) / spacingDegrees)));
+}
+
+/** How the eye pass aims a source's rays at `eye`; none without an eye, or when a curved mirror
+ *  narrows the bundle that reaches the pupil below what the pupil's size suggests. */
+function pupilAim(scene: Scene, source: SceneObject, eye: Eye | undefined): PupilAim | undefined {
+  if (!eye) return undefined;
+  let reach = 0;
+  for (const object of scene.objects) {
+    if (object.kind === 'arcMirror') return undefined;
+    reach = Math.max(reach, Math.hypot(object.x - source.x, object.y - source.y));
+  }
+  return { pupil: eye.pupil, reach };
 }
 
 /**
  * Follows every ray of every source until it leaves, is stopped, or fades below the pass's
- * intensity floor. Returns the number of segments traced.
+ * intensity floor. The eye pass aims its rays at `eye` when given. Returns the number of
+ * segments traced.
  */
-export function followRays(scene: Scene, pass: TracePass, handlers: RayHandlers): number {
+export function followRays(
+  scene: Scene,
+  pass: TracePass,
+  handlers: RayHandlers,
+  eye?: Eye,
+): number {
   const { maxSegments, minIntensity } = passLimits[pass];
   const grid = buildSurfaceGrid(scene.objects.flatMap(surfacesOf));
   const stack: TracedRay[] = [];
   for (const object of scene.objects) {
-    for (const ray of emitRays(object, pass)) stack.push(ray);
+    // Every ray costs at least one segment, so a source emitted past the cap is never traced.
+    if (stack.length >= maxSegments) break;
+    for (const ray of emitRays(object, pass, pupilAim(scene, object, eye))) stack.push(ray);
   }
 
   let segmentCount = 0;
