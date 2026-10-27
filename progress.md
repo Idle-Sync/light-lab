@@ -6,6 +6,14 @@ landed, what it unblocks, what is still open. This file is the answer to "where 
 
 <!-- progress start -->
 
+## 2026-10-27 — Milestone 2: beginner bench (run 20261027-163103-milestone-2-beginner-bench-rest)
+
+- Images without an eye: each extended object is imaged through mirrors, lenses and balls, virtual images dashed and real ones solid, with kind, orientation and size labels; a Show images switch saves in the scene, which is now scene format v3 (`packages/engine/src/images.ts`, `apps/web/src/bench/draw-images.ts`, `scene.ts`, `migrate.ts`). Capped at 50 object–optic pairs and 80 arrows.
+- Teaching detector with a verdict, a white-card strip, a brightness graph and a one-sentence explanation per readout (`apps/web/src/panels/detector-verdict.ts`, `detector-graph.ts`, `DetectorPanel.tsx`, `object-readouts.ts`); toolbar tooltips on every tool (`Toolbar.tsx`, `tool-descriptions.ts`); a Guide dialog from the header covering every tool and readout (`Guide.tsx`, `guide-entries.ts`).
+- Checks: `pnpm check` green (engine 172 tests, web 198); `pnpm e2e` 25 of 25 locally. The cap scene's images pass measures 12.8 ms locally, against a 40 ms CI budget.
+- Unblocks: milestone 3 (lens and mirror shapes). Milestone 2 is in the code but not yet pushed, deployed or tagged; the CI run on the merge commit is still to come.
+- Next: hide or relabel an intermediate image that a later optic intercepts (a two-lens line labels the first lens's image "Real image" when the second lens catches the light first); the magnifier and images budget tests run near Playwright's 30 s timeout on the GitHub runner; Vercel link, first deploy, then the `v0.1.0` tag for milestone 1 and `v0.2.0` for milestone 2 (human steps).
+
 ## 2026-10-27 — Bounded scene fields and magnifier eye budget (run 20261027-122603-bound-scene-fields-eye-budget)
 
 - Every scene field is bounded to the inspector ranges by the schema, with at most 500 objects (`packages/engine/src/scene.ts`, `migrate.ts`); edits clamp in `apps/web/src/store.ts` and inspector values in `apps/web/src/panels/inspector-fields.ts`; the bench caps hatch marks and ruler ticks (`apps/web/src/bench/draw.ts`).

@@ -112,50 +112,15 @@ Ray bench (milestone 1)
 
 Beginner bench (milestone 2)
 
-- Clean slate: a New button empties the bench in one step that Undo brings back; a first visit
-  opens an empty bench with a hint on how to start; the examples stay one click away in the
-  header — done when: Playwright tests cover the first visit and New followed by Undo.
-- New objects land in a free spot clear of the objects already on the bench, never stacked —
-  done when: a test adds several objects and no two overlap.
-- Every toolbar tool has a tooltip saying what it is and what it is for, reachable by mouse
-  and keyboard focus — done when: the accessibility checker passes with the tooltips shown.
-- Grid: faint dark grey lines that never wash out the rays, switched on and off; size in mm
-  from presets (0.5, 1, 5, 10, 25, 50) or typed from 0.01 to 500; drawn lines thin out by
-  powers of 5 when closer than 8 px; snap to grid when dragging, adding, duplicating and
-  nudging; grid settings saved in the scene (format v2, version 1 links migrate) — done when:
-  tests cover the line count bound, snapping on each path and the v1 migration.
-- Eye made readable: a sight lines switch; a "How the eye sees" legend saying the eye sends out
-  no rays, dashed sight lines meet at a virtual image and a solid line marks a real image;
-  "Virtual image" and "Real image" labels on the bench; the eyeball drawn at a real eye's
-  24 mm; pupil from 1 to 10 mm; the "what the eye sees" panel in small, medium and large —
-  done when: tests cover the switch, the labels, eye picking at 24 mm and the panel sizes.
-- Images without an eye: for every extended object, where its images are after each mirror,
-  lens or ball path, drawn like a textbook ray diagram whether or not the scene has an eye. A
-  virtual image (only the backward extensions of the rays meet) is a dashed arrow with dashed
-  extension lines back to it; a real image (the rays themselves meet) is a solid arrow where a
-  screen or detector would catch it. Each image is labelled with its kind, orientation and
-  size ("Virtual image, upright, same size", "Real image, upside down, 2× larger"). Images come
-  from the rays near the axis, so for a lens with aberration the image is the paraxial one,
-  drawn blurred where the rays do not meet at one point; an eye's own view stays exact. A
-  "Show images" switch in the scene settings, on by default and saved with the scene — done
-  when: a flat mirror's virtual image sits at the mirror distance behind it, upright and the
-  same size, within 0.01 mm; a converging lens with the object beyond 2f gives a real image
-  upside down and smaller at the thin-lens distance within 2 %; switching it off draws none.
-- Lens set by focal length: a focal length slider solves the thick-lens equation for equal
-  radii, radii under "Advanced"; F markers at the traced focal points of a selected lens,
-  curved mirror or ball — done when: the slider's value is the focal length the label shows
-  within 0.1 mm and the markers sit at the paraxial focus within 5 %.
-- Detector that teaches: a plain-language verdict (no light, sharp spot with its width, light
-  spread over a width, colours separated into a spectrum), a "white card" strip showing the
-  colours paper would show there, a brightness graph with mm marks in the inspector, and a
-  one-sentence explanation of every readout term — done when: tests cover each verdict from
-  constructed readings and every readout term has its explanation.
-- Guide page: every tool, what it does, its controls and readouts; how the bench models light
-  as rays (straight lines, Snell's law and total internal reflection, Fresnel partial
-  reflection and polarization, Sellmeier dispersion and white light as 7 wavelengths, ray
-  stopping rules, 2D and 3D-equivalent brightness, eye path analysis, the thick-lens and
-  mirror formulas) with each assumption stated — done when: every toolbar kind and every
-  readout's assumes line is covered, and a test fails when a kind has no Guide entry.
+- Clean slate: the header's New button empties the bench in one step that Undo brings back; a first visit opens an empty bench with a hint on how to start; the examples stay one click away in the header — landed: `Header.tsx`, `EmptyBenchHint.tsx`, `store.ts`; `links.spec.ts` covers the first visit and New followed by Undo.
+- New objects land in a free spot clear of the objects already on the bench, never stacked — landed: `store.ts`; `store.test.ts` covers placement ("places each new object clear of the objects already on the bench").
+- Every toolbar tool has a tooltip saying what it is and what it is for, reachable by mouse and keyboard focus — landed: `Toolbar.tsx` wraps each tool in a tooltip with its text from `tool-descriptions.ts`; `a11y.spec.ts` runs the WCAG check with a tooltip shown.
+- Grid: faint dark grey lines that never wash out the rays, switched on and off; size in mm from presets (0.5, 1, 5, 10, 25, 50) or typed from 0.01 to 500; drawn lines thin out by powers of 5 when closer than 8 px; snap to grid when dragging, adding, duplicating and nudging; grid settings saved in the scene (scene format v3; version 1 and 2 links migrate) — landed: `draw.ts`, `view.ts`, `gestures.ts`, `keyboard.ts`, `Inspector.tsx`, `scene.ts`, `migrate.ts`; tests in `view.test.ts`, `gestures.test.ts`, `keyboard.test.ts`, `store.test.ts` and `migrate.test.ts`.
+- Eye made readable: a sight lines switch; a "How the eye sees" legend saying the eye sends out no rays, dashed sight lines meet at a virtual image and a solid line marks a real image; "Virtual image" and "Real image" labels on the bench; the eyeball drawn at a real eye's 24 mm; pupil from 1 to 10 mm; the "what the eye sees" panel in small, medium and large — landed: the switch, legend and panel sizes in `Inspector.tsx`; `scene.ts` bounds the pupil; `gestures.test.ts` counts a click on the back of the 24 mm eyeball.
+- Images without an eye: for every extended object, where its images are after each mirror, lens or ball path, drawn like a textbook ray diagram whether or not the scene has an eye. A virtual image (only the backward extensions of the rays meet) is a dashed arrow with dashed extension lines back to it; a real image (the rays themselves meet) is a solid arrow where a screen or detector would catch it. Each image is labelled with its kind, orientation and size ("Virtual image, upright, same size", "Real image, upside down, 2× larger"). Images come from the rays near the axis, so for a lens with aberration the image is the paraxial one, drawn blurred where the rays do not meet at one point; an eye's own view stays exact. A "Show images" switch in the scene settings, on by default and saved with the scene — landed: `images.ts` (at most 50 object–optic pairs and 80 arrows), `draw-images.ts`, the switch in `Inspector.tsx`, `showImages` in `scene.ts` with its migration to v3; `images.test.ts` covers a flat mirror's upright same-size virtual image, the 45° fold, a real image at the thin-lens distance and a switched-off scene; `draw-images.test.ts` covers the dashed and solid arrows and the labels. Known gap: in a two-lens line the first lens's intermediate image is still drawn and labelled "Real image" when the second lens intercepts the light first (follow-up in `progress.md`).
+- Lens set by focal length: a focal length slider solves the thick-lens equation for equal radii, radii under "Advanced" — landed: the slider and "Advanced: surface radii" in `Inspector.tsx` and `inspector-fields.ts`; F markers at the traced focal points of a selected lens, curved mirror or ball — landed: `focal.ts` and `draw.ts`; `inspector-fields.test.ts` gives the lens the slider's focal length, and `draw.test.ts` marks the focal points of the selected lens.
+- Detector that teaches: a plain-language verdict (no light, sharp spot with its width, light spread over a width, colours separated into a spectrum), a "white card" strip showing the colours paper would show there, a brightness graph with mm marks in the inspector, and a one-sentence explanation of every readout term — landed: `detector-verdict.ts`, `detector-graph.ts`, `DetectorPanel.tsx`, `object-readouts.ts`; the white card and graph appear when the detector has light; a detector shorter than 3 mm gets three marks; `detector-verdict.test.ts`, `detector-graph.test.ts` and `object-readouts.test.ts` ("explains every readout of every kind in one sentence") cover them.
+- Guide page: every tool, what it does, its controls and readouts; how the bench models light as rays (straight lines, Snell's law and total internal reflection, Fresnel partial reflection and polarization, Sellmeier dispersion and white light as 7 wavelengths, ray stopping rules, 2D and 3D-equivalent brightness, eye path analysis, the thick-lens and mirror formulas) with each assumption stated — landed: the Guide dialog in `Guide.tsx` opens from the header, with entries in `guide-entries.ts`; `guide-entries.test.ts` fails when a kind has no entry; `a11y.spec.ts` covers the Guide, and keys pressed inside it do not reach the bench.
 
 Lens and mirror shapes (milestone 3)
 
