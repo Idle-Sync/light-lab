@@ -50,6 +50,11 @@ async function medianTiming(page: Page, timing: Timing): Promise<number> {
   return median(readings);
 }
 
+/** Prints a reading to stdout: the `list` reporter shows it under the test on a pass as well. */
+function printReading(name: string, ms: number, budgetMs: number): void {
+  console.log(`${name} ${ms.toFixed(1)} ms, budget ${budgetMs} ms`);
+}
+
 async function throttle(session: CDPSession, rate: number): Promise<void> {
   await session.send('Emulation.setCPUThrottlingRate', { rate });
 }
@@ -156,7 +161,9 @@ async function medianTimingOnSlowerCpu(
 }
 
 test('the bench trace stays inside its budget at a 4x slower CPU', () => {
-  expect(workerCheck.benchTraceMs * workerCheck.slowdown).toBeLessThan(20);
+  const traceMs = workerCheck.benchTraceMs * workerCheck.slowdown;
+  printReading('bench trace', traceMs, 20);
+  expect(traceMs).toBeLessThan(20);
 });
 
 test('the dense-source bench trace stays inside its budget at a 4x slower CPU', async ({
@@ -164,6 +171,7 @@ test('the dense-source bench trace stays inside its budget at a 4x slower CPU', 
 }) => {
   const start = Date.now();
   const traceMs = await medianTimingOnSlowerCpu(page, benchWithDenseSource, 9, 'data-trace-ms');
+  printReading('dense-source bench trace', traceMs, 60);
   expect(traceMs).toBeLessThan(60);
   // Kept under the 30 s test timeout, so a run drifting towards it fails here with its duration.
   expect(Date.now() - start).toBeLessThan(25_000);
@@ -173,6 +181,7 @@ test('the ball eye analysis stays inside its budget at a 4x slower CPU', async (
   const start = Date.now();
   // Nudging the eye (id 3) reanalyses what it sees.
   const eyeMs = await medianTimingOnSlowerCpu(page, examples.ball, 3, 'data-eye-ms');
+  printReading('ball eye', eyeMs, 100);
   expect(eyeMs).toBeLessThan(100);
   // Kept under the 30 s test timeout, so a run drifting towards it fails here with its duration.
   expect(Date.now() - start).toBeLessThan(25_000);
@@ -181,6 +190,7 @@ test('the ball eye analysis stays inside its budget at a 4x slower CPU', async (
 test('the magnifier eye analysis stays inside its budget at a 4x slower CPU', async ({ page }) => {
   const eyeMs = await medianTimingOnSlowerCpu(page, examples.magnifier, 3, 'data-eye-ms');
   test.info().annotations.push({ type: 'magnifier eye', description: `${eyeMs.toFixed(1)} ms` });
+  printReading('magnifier eye', eyeMs, 100);
   expect(eyeMs).toBeLessThan(100);
 });
 
@@ -190,6 +200,7 @@ test('the image arrows of a full scene stay inside their budget at a 4x slower C
   // Nudging the first object (id 0) retraces the scene and finds its images again.
   const imagesMs = await medianTimingOnSlowerCpu(page, imageCapScene, 0, 'data-images-ms');
   test.info().annotations.push({ type: 'image arrows', description: `${imagesMs.toFixed(1)} ms` });
+  printReading('image arrows', imagesMs, 40);
   expect(imagesMs).toBeLessThan(40);
 });
 
@@ -220,10 +231,12 @@ test('panning and zooming redraw within a frame and never retrace', async ({ pag
     frameTimes.push(Number(await pill.getAttribute('data-frame-ms')));
   }
 
+  const frameTimeP95 = percentile95(frameTimes);
+  printReading('frame time p95', frameTimeP95, 16);
   expect(await traceCount(page)).toBe(tracesBefore);
   test.info().annotations.push({
     type: 'frame times',
     description: frameTimes.map((time) => time.toFixed(1)).join(' '),
   });
-  expect(percentile95(frameTimes)).toBeLessThan(16);
+  expect(frameTimeP95).toBeLessThan(16);
 });
