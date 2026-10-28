@@ -202,6 +202,16 @@ describe('imagesOf with a converging lens', () => {
     expect(kept[0].kind).toBe('real');
     expect(Math.abs(kept[0].base.x - imageX)).toBeLessThan(0.01);
   });
+
+  it('keeps a real image when a surface stops only some of its rays', () => {
+    // At 200 mm the rays from the object's base cross within about 2 mm of the axis; this
+    // detector catches the ones above it, and the ones below still meet at the image.
+    const object = extendedObject({ x: -500 });
+    const partial: SceneObject = { kind: 'detector', id: 3, x: 200, y: 1.5, angle: 90, length: 2 };
+    const arrows = imagesOf(sceneOf([object, lens({}), partial]));
+    expect(arrows).toHaveLength(1);
+    expect(arrows[0].kind).toBe('real');
+  });
 });
 
 describe('imagesOf leaves images out', () => {
