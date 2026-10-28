@@ -44,7 +44,11 @@ async function medianTiming(page: Page, timing: Timing): Promise<number> {
   for (let trace = 0; trace < warmUpTraces + measuredTraces; trace += 1) {
     const before = await traceCount(page);
     await page.keyboard.press(trace % 2 === 0 ? 'ArrowRight' : 'ArrowLeft');
-    await expect.poll(() => traceCount(page)).toBeGreaterThan(before);
+    // The default poll waits 100 ms before its second look, and a retrace takes a few. The
+    // readings are stamped inside the worker, so polling sooner cannot change them.
+    await expect
+      .poll(() => traceCount(page), { intervals: [10, 20, 50, 100] })
+      .toBeGreaterThan(before);
     if (trace >= warmUpTraces) readings.push(Number(await statusPill(page).getAttribute(timing)));
   }
   return median(readings);
