@@ -200,8 +200,9 @@ test('the image arrows of a full scene stay inside their budget at a 4x slower C
   // Nudging the first object (id 0) retraces the scene and finds its images again.
   const imagesMs = await medianTimingOnSlowerCpu(page, imageCapScene, 0, 'data-images-ms');
   test.info().annotations.push({ type: 'image arrows', description: `${imagesMs.toFixed(1)} ms` });
-  printReading('image arrows', imagesMs, 40);
-  expect(imagesMs).toBeLessThan(40);
+  printReading('image arrows', imagesMs, 55);
+  // Twice the GitHub runner's worst reading, 25.6 ms, rounded up to a multiple of 5 ms.
+  expect(imagesMs).toBeLessThan(55);
 });
 
 test('panning and zooming redraw within a frame and never retrace', async ({ page }) => {
