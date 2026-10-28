@@ -1,13 +1,13 @@
 # Handoff 02 — start of the next session
 
-Milestones 1 (ray bench) and 2 (beginner bench) are merged and pushed to `Idle-Sync/light-lab` `master` at 0527b77. Neither is deployed or tagged.
+Milestones 1 (ray bench) and 2 (beginner bench) are merged to `master`; `Idle-Sync/light-lab` `origin/master` is at cfd79ed and local `master` is ahead of it (`git rev-list --count @{u}..HEAD`). Neither milestone is deployed or tagged.
 
-CI on 0527b77 (run 40515777853) is red; on master since then b16d191 (run 40516871280) passed and f57c8b4 (run 40647907278) failed on the same test. The `check` job passed. The `e2e` job passed 24 of 25: "the engine stays inside its budget at a 4x slower CPU" (`apps/web/e2e/perf.spec.ts:126`) exceeded Playwright's 30 s test timeout. It takes 9.2 s locally. On the T1 branch it timed out once and passed on rerun, so it sits close to the limit on the GitHub runner. The run before milestone 2 (40492890290 on 9fc28d7) passed both jobs.
+CI on cfd79ed (run 40671310082) passed both jobs, 27 of 27. The engine budget tests in `apps/web/e2e/perf.spec.ts` have a 25 s cap, and the 4x-slower-CPU tests print their reading against the budget on a pass. CI on the task branch of the last merge (run 40677992361) passed 29 of 29; CI on the merge commit is not yet confirmed.
 
 ## Do first, in order
 
 1. **Restart Claude Code.** Two idleflow versions (0.1.5 and 0.1.7) were active together this session: the 0.1.5 worktree guard refused the 0.1.7 implementers' `.idleflow-run/result.md` on a retry. A restart loads 0.1.7 throughout.
-2. **Make CI green.** `/idleflow:fix "the engine budget e2e test exceeds Playwright's 30 s timeout on the GitHub runner"`. Start by finding where the test spends its time on CI. Every engine update now also runs the images pass (`imagesOf` in `apps/web/src/engine-worker.ts`). Raising the test timeout without a reason is not a fix.
+2. **Push `master` and confirm CI on the merge commit**: the e2e job green, no `error:`, `warning:` or `uncaught:` line in its log.
 3. **Fix intermediate images in a lens chain.** `/idleflow:fix "an intermediate image that a later optic intercepts is drawn and labelled Real image"`. In a two-lens line the first lens's image is labelled "Real image" although the second lens catches the light before it forms. The rule that decides real or virtual ignores where the segment ends (`packages/engine/src/images.ts`; review note in the run's `review/T1-correct.1.md`, quoted in `docs/sessions/s_0005.md`).
 4. **Check the app by eye.** `pnpm dev`, open the magnifier example, and turn Show images on and off. Select the detector in the bench example to see its verdict, white-card strip and graph. Hover each toolbar tool, and open the Guide from the header.
 5. **Link Vercel and deploy**, then check the production URL opens the bench.
