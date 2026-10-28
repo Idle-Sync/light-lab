@@ -9,6 +9,7 @@ import {
 } from './images';
 import { refractiveIndex, thickLensFocalLength } from './materials';
 import { defaultSettings, type Scene, type SceneObject, wrapAngle } from './scene';
+import { noHitLength } from './spatial-grid';
 
 // The same figure as `farthestImage` in images.ts: images past it are treated as at infinity.
 const farthestImage = 20000;
@@ -135,11 +136,71 @@ describe('imagesOf with a converging lens', () => {
     expect(imageLabel(image)).toMatch(/^Real image, upside down, .*smaller$/);
   });
 
-  it('gives two lenses in line one image each, not a second copy from the second pair', () => {
+  it("gives two lenses in line only the chain's final image, not a copy from the second pair", () => {
+    // The second lens stops the first lens's light before it meets, so that image is hidden.
+    // The pair aimed at the second lens traces the same chain to the same final path, which the
+    // first pair already imaged, so it adds no copy.
     const scene = sceneOf([extendedObject({ x: -500 }), lens({}), lens({ id: 3, x: 100 })]);
     const arrows = imagesOf(scene);
-    expect(arrows).toHaveLength(2);
-    expect(arrows[0].path).not.toBe(arrows[1].path);
+    expect(arrows).toHaveLength(1);
+  });
+
+  it('hides the image a second lens intercepts and keeps only the image it forms', () => {
+    // The first lens alone images the object at about 317 mm; the second lens at 100 mm turns
+    // that converging light into a real image at about 203 mm.
+    const scene = sceneOf([extendedObject({ x: -500 }), lens({}), lens({ id: 3, x: 100 })]);
+    const arrows = imagesOf(scene);
+    expect(arrows).toHaveLength(1);
+    const [image] = arrows;
+    expect(image.kind).toBe('real');
+    expect(Math.abs(image.base.x - 203)).toBeLessThan(10);
+    expect(image.magnification).toBeLessThan(0);
+    expect(imageLabel(image)).toMatch(/^Real image, upside down, .*smaller$/);
+    for (const each of arrows) expect(each.base.x).toBeLessThanOrEqual(250);
+  });
+
+  it('keeps a real image that forms before the next lens', () => {
+    const scene = sceneOf([extendedObject({ x: -500 }), lens({}), lens({ id: 3, x: 400 })]);
+    const firstImage = imagesOf(scene).find(
+      (image) => image.kind === 'real' && Math.abs(image.base.x - 317) < 10,
+    );
+    expect(firstImage).toBeDefined();
+  });
+
+  it('keeps a real image whose light hits nothing, even past the no-hit length', () => {
+    // 5 mm outside the focal point, the image forms about 7.7 m behind the lens: farther than
+    // a segment that hits nothing is drawn, nearer than an image counted as at infinity.
+    const frontFocus = focalPoints(lens({}), 587.6)[0];
+    const scene = sceneOf([
+      extendedObject({ x: frontFocus.x - 5, y: frontFocus.y, height: 2 }),
+      lens({}),
+    ]);
+    const arrows = imagesOf(scene);
+    expect(arrows).toHaveLength(1);
+    const [image] = arrows;
+    expect(image.kind).toBe('real');
+    expect(Math.abs(image.base.x)).toBeGreaterThan(noHitLength);
+    expect(Math.abs(image.base.x)).toBeLessThan(farthestImage);
+  });
+
+  it('hides a real image when a detector stops the light first, and keeps it when it does not', () => {
+    const object = extendedObject({ x: -500 });
+    const imageX = imagesOf(sceneOf([object, lens({})]))[0].base.x;
+    const detectorAt = (x: number): SceneObject => ({
+      kind: 'detector',
+      id: 3,
+      x,
+      y: 0,
+      angle: 90,
+      length: 60,
+    });
+
+    expect(imagesOf(sceneOf([object, lens({}), detectorAt(150)]))).toEqual([]);
+
+    const kept = imagesOf(sceneOf([object, lens({}), detectorAt(imageX + 20)]));
+    expect(kept).toHaveLength(1);
+    expect(kept[0].kind).toBe('real');
+    expect(Math.abs(kept[0].base.x - imageX)).toBeLessThan(0.01);
   });
 });
 
