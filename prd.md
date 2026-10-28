@@ -232,6 +232,14 @@ Ripple view
   storage sits behind one save/load interface so a backend can slot in.
 - Server-stored short links — layered on top of `#` links, which keep working.
 - Rust/WASM for a hot function — only when a profiler shows it is the bottleneck.
+- Pan and zoom from a cached picture: keep the last drawn bench as an image, move or scale it
+  during a gesture and redraw sharply when the gesture ends, with the selection, handles and
+  labels drawn on top so they stay sharp. Today every pan or zoom step redraws every segment
+  (`apps/web/src/bench/BenchCanvas.tsx`); the pan-and-zoom speed test in
+  `apps/web/e2e/perf.spec.ts` keeps frames under 16 ms at 4x CPU only for the 9-object bench
+  example. Measure first: pan the 600-ray dense-source scene and a phone viewport at 4x CPU;
+  build it when frames exceed 16 ms. Costs: a zoom looks soft until the redraw, and the edges
+  a pan uncovers stay empty until it.
 
 ## Will not do
 
