@@ -65,6 +65,12 @@ docs_in_git: yes
 of git through the file `ignore_in:` names, so they stay local to this machine. Asked once, the
 first time docs are turned on.
 
+lessons_in: idleflow
+
+Where the lessons file lives. `idleflow` keeps it at `.idleflow/lessons.md`; `docs` keeps it at
+`docs/lessons.md`, next to the research and session notes. Either way it is committed and the
+whole team reads the same lessons. Unset means `.idleflow/`. Asked once, when docs are on.
+
 ## Ignore rules
 
 ignore_in: exclude
