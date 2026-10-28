@@ -2,7 +2,7 @@
 
 Milestones 1 (ray bench) and 2 (beginner bench) are merged and pushed to `Idle-Sync/light-lab` `master` at 0527b77. Neither is deployed or tagged.
 
-CI on 0527b77 (run 40515777853) is red. The `check` job passed. The `e2e` job passed 24 of 25: "the engine stays inside its budget at a 4x slower CPU" (`apps/web/e2e/perf.spec.ts:126`) exceeded Playwright's 30 s test timeout. It takes 9.2 s locally. On the T1 branch it timed out once and passed on rerun, so it sits close to the limit on the GitHub runner. The run before milestone 2 (40492890290 on 9fc28d7) passed both jobs.
+CI on 0527b77 (run 40515777853) is red; on master since then b16d191 (run 40516871280) passed and f57c8b4 (run 40647907278) failed on the same test. The `check` job passed. The `e2e` job passed 24 of 25: "the engine stays inside its budget at a 4x slower CPU" (`apps/web/e2e/perf.spec.ts:126`) exceeded Playwright's 30 s test timeout. It takes 9.2 s locally. On the T1 branch it timed out once and passed on rerun, so it sits close to the limit on the GitHub runner. The run before milestone 2 (40492890290 on 9fc28d7) passed both jobs.
 
 ## Do first, in order
 
@@ -20,7 +20,7 @@ CI on 0527b77 (run 40515777853) is red. The `check` job passed. The `e2e` job pa
 
 ## Then
 
-- **Milestone 3, lens and mirror shapes (`prd.md`)**: concave and meniscus lenses, custom 2D shapes. Brainstorm milestones 3 to 6 before planning them.
+- **Milestone 3, lens and mirror shapes (`progress.md`, `prd.md`)**: concave and meniscus lenses, custom 2D shapes. Brainstorm milestones 3 to 6 before planning them.
 - **Learn playlist, milestone 4**: it builds on the Guide (`apps/web/src/panels/guide-entries.ts`) and the image arrows.
 
 ## Known gaps and open items
@@ -38,5 +38,5 @@ CI on 0527b77 (run 40515777853) is red. The `check` job passed. The `e2e` job pa
 
 - `progress.md`, `docs/sessions/s_0005.md`: what milestone 2 landed
 - `docs/sessions/s_0004.md`: the bounded scene fields and the eye-budget fix
-- `prd.md`: milestones 3 to 9 and every "done when"
+- `progress.md`: milestones 3 to 9; `prd.md`: every "done when"
 - `.idleflow/lessons.md`: size timing budgets against the CI reading, not the local one

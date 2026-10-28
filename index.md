@@ -5,8 +5,8 @@ directory and important file is for, in one line each. Rewritten by the idleflow
 after every run so it never goes stale. Paths, not prose. Under 80 lines.
 
 ## Start here
-- `prd.md` — what this project is and is not, must-do items with their tests, milestones
-- `progress.md` — what has landed and what is next
+- `prd.md` — what this project is and is not, must-do items with their tests
+- `progress.md` — milestone checklist, what has landed and what is next
 - `.idleflow/conventions.md` — how code is written here, stack and library decisions, tooling
 - `CLAUDE.md` — working rules for every Claude Code session in this repo
 - `docs/handoffs/handoff_02.md` — what the next session does first
