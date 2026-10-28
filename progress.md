@@ -86,6 +86,13 @@ their "done when" live in `prd.md`.
 
 <!-- progress start -->
 
+## 2026-10-28 — The engine budget e2e tests fail intermittently on the GitHub runner (run 20261028-142214-perf-tests-ci-flaky, Sayantan)
+
+- Landed: every budget test in `apps/web/e2e/perf.spec.ts` prints its reading and budget on a pass; the image-arrows budget is 55 ms, twice the largest of three CI readings (25.6 ms). The earlier branch is merged: 25 s cap on the scene tests, `list` reporter, worker throttling check, one test per scene. Merge `8ecf75f` is local on master.
+- Checks: `pnpm check` green (engine 172, web 198 tests); `pnpm e2e` 27 of 27 locally; CI on the task branch (run 40663737117, 1d7aba3) 27 of 27 in three attempts, image arrows 30.8, 28.0 and 22.0 ms under 55.
+- Unblocks: the 25 s cap held in CI (dense-source and ball eye peak at 12.3 s). The 12.5 s target is dropped; the cap is the guard.
+- Next: push master and confirm its CI run (27 of 27, six reading lines, image arrows under 55); fix review findings F1 and F2 in `perf.spec.ts`; Vercel link and first deploy (human steps).
+
 ## 2026-10-28 — idleflow set up (run 20261028-141927-setup)
 
 - Readability mode `balanced`; project docs on and in git; lessons in `.idleflow/lessons.md`.
