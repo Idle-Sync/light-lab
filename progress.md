@@ -86,6 +86,13 @@ their "done when" live in `prd.md`.
 
 <!-- progress start -->
 
+## 2026-10-28 — An intermediate image that a later optic intercepts is drawn and labelled "Real image" (run 20261028-164942-intermediate-image-real-label, Sayantan)
+
+- Landed: a real image is hidden when every ray of its light path ends at a surface before the rays meet; in a two-lens line only the chain's final image is drawn and labelled, with its kind, orientation and size unchanged (`packages/engine/src/images.ts`, `images.test.ts`). Merged locally as `f4edcc0`, not pushed. Showing the intermediate image as a virtual object was not built.
+- Checks: `pnpm check` green locally; CI on the task branch run 40682166090 passed `check` and `e2e`, image arrows 27.6 ms under the 55 ms budget.
+- Unblocks: the known gap at `prd.md` line 120 is closed; that sentence still reads as open and is left for a human edit.
+- Next: push master and confirm CI on the merge commit; then milestone 3 (concave and meniscus lenses).
+
 ## 2026-10-28 — The throttling-check page runs under the console gate (run 20261028-155412-perf-beforeall-page-gate, Sayantan)
 
 - Landed: the page the worker throttling check opens in `beforeAll` fails the file on a console error, warning or uncaught exception, and closes whether or not the check throws (`apps/web/e2e/perf.spec.ts`, `test.ts`, `console-gate.spec.ts`). Merged locally as `8cfdfaf`, not pushed.
