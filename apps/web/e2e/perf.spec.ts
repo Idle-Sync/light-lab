@@ -1,7 +1,7 @@
 import { examples, type Scene, type SceneObject, wrapAngle } from '@light-lab/engine';
 import type { CDPSession, Page } from '@playwright/test';
 import { benchArea, expectSceneShown, sceneUrl, selectObject } from './bench';
-import { expect, test } from './test';
+import { expect, recordConsoleProblems, test } from './test';
 
 const throttleRate = 4;
 const warmUpTraces = 3;
@@ -134,11 +134,15 @@ let workerCheck: { slowdown: number; benchTraceMs: number };
 test.beforeAll(async ({ browser }) => {
   const start = Date.now();
   const page = await browser.newPage();
-  const { slowdown, fullSpeed, throttled } = await workerSlowdown(
-    page,
-    await page.context().newCDPSession(page),
-  );
-  await page.close();
+  const problems = recordConsoleProblems(page.context());
+  let check: Awaited<ReturnType<typeof workerSlowdown>>;
+  try {
+    check = await workerSlowdown(page, await page.context().newCDPSession(page));
+  } finally {
+    await page.close();
+  }
+  expect(problems).toEqual([]);
+  const { slowdown, fullSpeed, throttled } = check;
   workerCheck = { slowdown, benchTraceMs: throttled };
   const description = `bench trace ${fullSpeed} ms at full speed, ${throttled} ms throttled; worker readings scaled by ${slowdown}`;
   test.info().annotations.push({ type: 'worker throttling', description });
