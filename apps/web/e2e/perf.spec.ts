@@ -105,42 +105,81 @@ const imageCapScene: Scene = { ...examples.bench, objects: imageCapObjects() };
 
 /**
  * The factor that turns the engine worker's timings into timings on a CPU `throttleRate` times
- * slower, after checking whether page throttling reaches the worker. Chromium throttles only a
- * page's main thread and refuses the command on worker targets ("Operation is only supported
- * for pages, not workers"); when the worker does not slow down, its readings are scaled.
+ * slower, after checking whether page throttling reaches the worker, and the bench trace
+ * readings it was checked with. Chromium throttles only a page's main thread and refuses the
+ * command on worker targets ("Operation is only supported for pages, not workers"); when the
+ * worker does not slow down, its readings are scaled.
  */
-async function workerSlowdown(page: Page, session: CDPSession): Promise<number> {
+async function workerSlowdown(
+  page: Page,
+  session: CDPSession,
+): Promise<{ slowdown: number; fullSpeed: number; throttled: number }> {
   // The ruler (id 9) changes no ray, so nudging it retraces the same bench.
   await openForNudging(page, examples.bench, 9);
   const fullSpeed = await medianTiming(page, 'data-trace-ms');
   await throttle(session, throttleRate);
   const throttled = await medianTiming(page, 'data-trace-ms');
   const slowdown = throttled >= 2 * fullSpeed ? 1 : throttleRate;
-  test.info().annotations.push({
-    type: 'worker throttling',
-    description: `bench trace ${fullSpeed} ms at full speed, ${throttled} ms throttled; worker readings scaled by ${slowdown}`,
-  });
-  return slowdown;
+  return { slowdown, fullSpeed, throttled };
 }
 
-test('the engine stays inside its budget at a 4x slower CPU', async ({ page }) => {
-  const slowdown = await workerSlowdown(page, await page.context().newCDPSession(page));
+/** Set by the worker throttling check in `beforeAll`, which every test below waits for. */
+let workerCheck: { slowdown: number; benchTraceMs: number };
 
-  await openForNudging(page, examples.bench, 9);
-  expect((await medianTiming(page, 'data-trace-ms')) * slowdown).toBeLessThan(20);
+test.beforeAll(async ({ browser }) => {
+  const start = Date.now();
+  const page = await browser.newPage();
+  const { slowdown, fullSpeed, throttled } = await workerSlowdown(
+    page,
+    await page.context().newCDPSession(page),
+  );
+  await page.close();
+  workerCheck = { slowdown, benchTraceMs: throttled };
+  const description = `bench trace ${fullSpeed} ms at full speed, ${throttled} ms throttled; worker readings scaled by ${slowdown}`;
+  test.info().annotations.push({ type: 'worker throttling', description });
+  console.log(`worker throttling check ${Date.now() - start} ms: ${description}`);
+});
 
-  await openForNudging(page, benchWithDenseSource, 9);
-  expect((await medianTiming(page, 'data-trace-ms')) * slowdown).toBeLessThan(60);
+/**
+ * Throttles the page to a CPU `throttleRate` times slower, opens `scene` with object `id`
+ * selected, and returns the median of `timing` scaled by the worker's slowdown.
+ */
+async function medianTimingOnSlowerCpu(
+  page: Page,
+  scene: Scene,
+  id: number,
+  timing: Timing,
+): Promise<number> {
+  await throttle(await page.context().newCDPSession(page), throttleRate);
+  await openForNudging(page, scene, id);
+  return (await medianTiming(page, timing)) * workerCheck.slowdown;
+}
 
+test('the bench trace stays inside its budget at a 4x slower CPU', () => {
+  expect(workerCheck.benchTraceMs * workerCheck.slowdown).toBeLessThan(20);
+});
+
+test('the dense-source bench trace stays inside its budget at a 4x slower CPU', async ({
+  page,
+}) => {
+  const start = Date.now();
+  const traceMs = await medianTimingOnSlowerCpu(page, benchWithDenseSource, 9, 'data-trace-ms');
+  expect(traceMs).toBeLessThan(60);
+  // Kept under the 30 s test timeout, so a run drifting towards it fails here with its duration.
+  expect(Date.now() - start).toBeLessThan(25_000);
+});
+
+test('the ball eye analysis stays inside its budget at a 4x slower CPU', async ({ page }) => {
+  const start = Date.now();
   // Nudging the eye (id 3) reanalyses what it sees.
-  await openForNudging(page, examples.ball, 3);
-  expect((await medianTiming(page, 'data-eye-ms')) * slowdown).toBeLessThan(100);
+  const eyeMs = await medianTimingOnSlowerCpu(page, examples.ball, 3, 'data-eye-ms');
+  expect(eyeMs).toBeLessThan(100);
+  // Kept under the 30 s test timeout, so a run drifting towards it fails here with its duration.
+  expect(Date.now() - start).toBeLessThan(25_000);
 });
 
 test('the magnifier eye analysis stays inside its budget at a 4x slower CPU', async ({ page }) => {
-  const slowdown = await workerSlowdown(page, await page.context().newCDPSession(page));
-  await openForNudging(page, examples.magnifier, 3);
-  const eyeMs = (await medianTiming(page, 'data-eye-ms')) * slowdown;
+  const eyeMs = await medianTimingOnSlowerCpu(page, examples.magnifier, 3, 'data-eye-ms');
   test.info().annotations.push({ type: 'magnifier eye', description: `${eyeMs.toFixed(1)} ms` });
   expect(eyeMs).toBeLessThan(100);
 });
@@ -148,10 +187,8 @@ test('the magnifier eye analysis stays inside its budget at a 4x slower CPU', as
 test('the image arrows of a full scene stay inside their budget at a 4x slower CPU', async ({
   page,
 }) => {
-  const slowdown = await workerSlowdown(page, await page.context().newCDPSession(page));
   // Nudging the first object (id 0) retraces the scene and finds its images again.
-  await openForNudging(page, imageCapScene, 0);
-  const imagesMs = (await medianTiming(page, 'data-images-ms')) * slowdown;
+  const imagesMs = await medianTimingOnSlowerCpu(page, imageCapScene, 0, 'data-images-ms');
   test.info().annotations.push({ type: 'image arrows', description: `${imagesMs.toFixed(1)} ms` });
   expect(imagesMs).toBeLessThan(40);
 });

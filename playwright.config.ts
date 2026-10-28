@@ -8,7 +8,8 @@ export default defineConfig({
   // One worker: the performance budgets need the machine to themselves.
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
-  reporter: process.env.CI ? 'github' : 'list',
+  // `list` beside `github`: the CI log then shows every test's duration and printed lines on a pass.
+  reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
     baseURL: `http://localhost:${port}`,
     permissions: ['clipboard-read', 'clipboard-write'],
