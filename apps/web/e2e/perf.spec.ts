@@ -44,11 +44,7 @@ async function medianTiming(page: Page, timing: Timing): Promise<number> {
   for (let trace = 0; trace < warmUpTraces + measuredTraces; trace += 1) {
     const before = await traceCount(page);
     await page.keyboard.press(trace % 2 === 0 ? 'ArrowRight' : 'ArrowLeft');
-    // The default poll waits 100 ms before its second look, and a retrace takes a few. The
-    // readings are stamped inside the worker, so polling sooner cannot change them.
-    await expect
-      .poll(() => traceCount(page), { intervals: [10, 20, 50, 100] })
-      .toBeGreaterThan(before);
+    await expect.poll(() => traceCount(page)).toBeGreaterThan(before);
     if (trace >= warmUpTraces) readings.push(Number(await statusPill(page).getAttribute(timing)));
   }
   return median(readings);
@@ -148,19 +144,14 @@ test('the engine stays inside its budget at a 4x slower CPU', async ({ page }) =
   expect(benchTraceMs * slowdown).toBeLessThan(20);
   reportPhaseTime('workerSlowdown and bench', testStart);
 
-  // Pages load at full speed: the budgets cover throttled nudges after throttled warm-ups.
   const denseSourceStart = Date.now();
-  await throttle(session, 1);
   await openForNudging(page, benchWithDenseSource, 9);
-  await throttle(session, throttleRate);
   expect((await medianTiming(page, 'data-trace-ms')) * slowdown).toBeLessThan(60);
   reportPhaseTime('dense-source bench', denseSourceStart);
 
   // Nudging the eye (id 3) reanalyses what it sees.
   const ballEyeStart = Date.now();
-  await throttle(session, 1);
   await openForNudging(page, examples.ball, 3);
-  await throttle(session, throttleRate);
   expect((await medianTiming(page, 'data-eye-ms')) * slowdown).toBeLessThan(100);
   reportPhaseTime('ball eye', ballEyeStart);
 
