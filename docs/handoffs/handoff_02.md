@@ -27,8 +27,8 @@ CI on 0527b77 (run 40515777853) is red; on master since then b16d191 (run 405168
 
 | Item | Where |
 |---|---|
-| The images pass is capped at 50 object–optic pairs and 80 arrows; the cap scene measures 12.8 ms locally against a 40 ms budget. The GitHub runner measured about 2.8 times the local figure (50.4 ms at 100 pairs) | `packages/engine/src/images.ts`, `apps/web/e2e/perf.spec.ts` |
-| CI uses the Playwright `github` reporter, which prints annotations only for failing tests, so a passing run shows no timing figures | `playwright.config.ts` |
+| The images pass is capped at 50 object–optic pairs and 80 arrows; the cap scene measures 10.4 to 10.8 ms locally against a 55 ms budget, twice the GitHub runner's worst of three readings (25.6, 22.4 and 19.6 ms in run 40662707612) rounded up to a multiple of 5 ms | `packages/engine/src/images.ts`, `apps/web/e2e/perf.spec.ts` |
+| CI prints the Playwright `list` reporter beside `github`, so a passing run shows every test's duration, the line the worker throttling check prints and the reading each perf test prints against its budget | `playwright.config.ts`, `apps/web/e2e/perf.spec.ts` |
 | Chromium cannot throttle Web Workers, so worker timings in the speed tests are scaled by the rate, not measured slowed | `apps/web/e2e/perf.spec.ts` |
 | Image arrows are for extended objects only; point sources and beams show their images through the eye | `prd.md` milestone 2 |
 | idleflow issues opened this session: Idle-Sync/idleflow#14 (show debate cuts to the human first) and #15 (CI timing criteria cannot be quoted on a pass) | GitHub |
