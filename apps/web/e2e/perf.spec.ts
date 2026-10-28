@@ -135,7 +135,7 @@ test.beforeAll(async ({ browser }) => {
   const start = Date.now();
   const page = await browser.newPage();
   const problems = recordConsoleProblems(page.context());
-  let check;
+  let check: Awaited<ReturnType<typeof workerSlowdown>>;
   try {
     check = await workerSlowdown(page, await page.context().newCDPSession(page));
   } finally {
