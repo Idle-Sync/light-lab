@@ -26,7 +26,7 @@ their "done when" live in `prd.md`.
 - [x] Accessible to WCAG AA (20261026-163917-milestone-1-ray-bench)
 - [x] Example scenes in the header (20261026-163917-milestone-1-ray-bench)
 - [x] Look (20261026-163917-milestone-1-ray-bench)
-- [ ] Public repository, CI on every push and a Vercel deployment
+- [x] Public repository, CI on every push and a Vercel deployment (https://lightlab.idlesync.in)
 - [x] Scene fields bounded to the inspector's ranges (20261027-122603-bound-scene-fields-eye-budget)
 
 ### M2: Beginner bench — a newcomer builds a scene from an empty bench and reads what it shows
@@ -85,6 +85,12 @@ their "done when" live in `prd.md`.
 ## Log
 
 <!-- progress start -->
+
+## 2026-10-28 — deployed; milestone 1 complete
+
+- Landed: the repository moved from `Idle-Sync/light-lab` to `Lazy-Coder-03/light-lab`; the Vercel project `light-lab` (scope lazy-coder-03s-projects) is connected to it and serves https://lightlab.idlesync.in (Cloudflare CNAME `lightlab`, DNS only).
+- Milestone 1's last box is ticked: the production URL opens the bench, CI is green on `master`, and pull requests get preview URLs.
+- Next: tag `v0.1.0` (milestone 1) and `v0.2.0` (milestone 2) with the commands in `CLAUDE.md` "Releases"; then milestone 3.
 
 ## 2026-10-28 — session end
 

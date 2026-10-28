@@ -4,6 +4,8 @@ A browser-based 2D optics sandbox: place light sources, mirrors, lenses, prisms,
 
 For students, teachers, optics hobbyists and engineers, and anyone curious about light.
 
+Live at https://lightlab.idlesync.in. Every pull request gets a Vercel preview URL.
+
 See `prd.md`.
 
 ## Run it

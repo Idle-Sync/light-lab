@@ -100,7 +100,7 @@ Ray bench
   toolbar left and inspector right, zoom group and scale bar bottom left, status pill with ray
   count and trace time, sentence case throughout — done when: tokens live in one Tailwind
   config and the two prototype screens in `reference/ui-mockup/` are matched in layout.
-- Public repository under the Idle-Sync GitHub organization with a GPL-3.0 `LICENSE`, CI on
+- Public repository under the Lazy-Coder-03 GitHub account with a GPL-3.0 `LICENSE`, CI on
   every push, and a Vercel deployment — done when: the production URL opens the bench; CI is
   green on the default branch; a preview URL exists per pull request.
 - Scene fields bounded to the inspector's ranges, so a crafted link or saved scene cannot
@@ -273,7 +273,7 @@ Ripple view
 - Units: millimetres for length, nanometres for wavelength, 64-bit floats.
 - Physics source: `reference/` is the prototype code to port; where its split `.js` files and
   the `.dc.html` screens disagree, the `.dc.html` files win.
-- Licence and hosting: public repository under Idle-Sync, GPL-3.0; derivative projects of the
+- Licence and hosting: public repository under Lazy-Coder-03, GPL-3.0; derivative projects of the
   engine must be GPL-compatible open source; hosted on Vercel; no server, no data leaves the
   browser.
 - Accessibility: WCAG AA, checked on every interface change.
