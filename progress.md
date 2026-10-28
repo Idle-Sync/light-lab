@@ -4,6 +4,86 @@ Newest first. One entry per idleflow run, written by the retro agent after the m
 Humans may add entries by hand for work done outside idleflow. Keep each entry short: what
 landed, what it unblocks, what is still open. This file is the answer to "where are we?".
 
+## Milestones
+
+Milestones are a build order, not dates; each ends deployed and usable. The capabilities and
+their "done when" live in `prd.md`.
+
+### M1: Ray bench — users can test the eye hypothesis on a deployed bench with all twelve object kinds
+
+- [x] Engine as a standalone TypeScript package (20261026-163917-milestone-1-ray-bench)
+- [x] Accuracy oracles in CI (20261026-163917-milestone-1-ray-bench)
+- [x] Versioned scene JSON with link encodings (20261026-163917-milestone-1-ray-bench)
+- [x] Save and load as a file; browser storage keeps the last scene (20261026-163917-milestone-1-ray-bench)
+- [x] Twelve object kinds (20261026-163917-milestone-1-ray-bench)
+- [x] Ray physics (20261026-163917-milestone-1-ray-bench)
+- [x] Readouts that state their assumptions (20261026-163917-milestone-1-ray-bench)
+- [x] 2D brightness with a "3D equivalent" toggle (20261026-163917-milestone-1-ray-bench)
+- [x] Responsiveness (20261026-163917-milestone-1-ray-bench)
+- [x] Eye path analysis with fixed exposure (20261026-163917-milestone-1-ray-bench)
+- [x] Undo and redo (20261026-163917-milestone-1-ray-bench)
+- [x] Touch on phone and tablet (20261026-163917-milestone-1-ray-bench)
+- [x] Accessible to WCAG AA (20261026-163917-milestone-1-ray-bench)
+- [x] Example scenes in the header (20261026-163917-milestone-1-ray-bench)
+- [x] Look (20261026-163917-milestone-1-ray-bench)
+- [ ] Public repository, CI on every push and a Vercel deployment
+- [x] Scene fields bounded to the inspector's ranges (20261027-122603-bound-scene-fields-eye-budget)
+
+### M2: Beginner bench — a newcomer builds a scene from an empty bench and reads what it shows
+
+- [x] Clean slate (5bbc3e0)
+- [x] New objects land in a free spot (5bbc3e0)
+- [x] Toolbar tooltips (20261027-163103-milestone-2-beginner-bench-rest)
+- [x] Grid and snapping (adf1149)
+- [x] Eye made readable (46857e9)
+- [x] Images without an eye (20261027-163103-milestone-2-beginner-bench-rest)
+- [x] Lens set by focal length (7ce77fe)
+- [x] Detector that teaches (20261027-163103-milestone-2-beginner-bench-rest)
+- [x] Guide page (20261027-163103-milestone-2-beginner-bench-rest)
+
+### M3: Lens and mirror shapes — concave, meniscus and custom 2D lenses and mirrors on the bench
+
+- [ ] Concave and meniscus lenses
+- [ ] Custom 2D lens and mirror shapes
+
+### M4: Learn playlist — guided, replayable ray lessons
+
+- [ ] A playlist of lessons, one idea and one or two tools each
+- [ ] The learner builds each scene
+- [ ] Lessons can be replayed; a first visit opens the playlist
+- [ ] Image lessons use the image arrows and their orientation labels
+
+### M5: Physical eye, vision and camera — a model eye with vision conditions, spectacles, colour vision deficiency and camera projections, offline
+
+- [ ] Camera view with a projection switch
+- [ ] Physical model eye
+- [ ] Vision conditions
+- [ ] Spectacles with a suggested lens
+- [ ] Colour vision deficiency
+- [ ] Offline PWA
+
+### M6: Rough surfaces — the eye sees matte objects within the speed budgets
+
+- [ ] Roughness from polished to matte
+
+### M7: Wave lab — slits and gratings with the Huygens sum measured against theory
+
+- [ ] Single slit, double slit and grating
+- [ ] Wave sum never blocks the interface
+- [ ] Rays / Waves switch
+- [ ] Wave lessons and a wave section in the Guide
+
+### M8: GRIN glass and ray-mode grating — curved rays in graded glass; grating orders with wave-theory intensities
+
+- [ ] Gradient-index glass
+- [ ] Ray-mode diffraction grating
+
+### M9: Ripple view — waves spreading on a GPU grid
+
+- [ ] GPU wave grid
+
+## Log
+
 <!-- progress start -->
 
 ## 2026-10-27 — Milestone 2: beginner bench (run 20261027-163103-milestone-2-beginner-bench-rest)

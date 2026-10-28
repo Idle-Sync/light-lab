@@ -48,7 +48,7 @@ Engine and scene format
 - Save and load as a file, and browser storage keeps the last scene — done when: a reload
   reopens the scene that was on screen; export then import of a file gives an identical scene.
 
-Ray bench (milestone 1)
+Ray bench
 
 - Twelve object kinds, each placed from the toolbar, dragged, rotated and edited in the
   inspector: point source, beam, extended object, flat mirror, arc mirror, lens, prism, glass
@@ -110,7 +110,7 @@ Ray bench (milestone 1)
   4x CPU in local runs. Done when: vitest asserts the emission stop, the ray cap, and the
   hatch and tick caps for scenes with extreme values.
 
-Beginner bench (milestone 2)
+Beginner bench
 
 - Clean slate: the header's New button empties the bench in one step that Undo brings back; a first visit opens an empty bench with a hint on how to start; the examples stay one click away in the header — landed: `Header.tsx`, `EmptyBenchHint.tsx`, `store.ts`; `links.spec.ts` covers the first visit and New followed by Undo.
 - New objects land in a free spot clear of the objects already on the bench, never stacked — landed: `store.ts`; `store.test.ts` covers placement ("places each new object clear of the objects already on the bench").
@@ -122,7 +122,7 @@ Beginner bench (milestone 2)
 - Detector that teaches: a plain-language verdict (no light, sharp spot with its width, light spread over a width, colours separated into a spectrum), a "white card" strip showing the colours paper would show there, a brightness graph with mm marks in the inspector, and a one-sentence explanation of every readout term — landed: `detector-verdict.ts`, `detector-graph.ts`, `DetectorPanel.tsx`, `object-readouts.ts`; the white card and graph appear when the detector has light; a detector shorter than 3 mm gets three marks; `detector-verdict.test.ts`, `detector-graph.test.ts` and `object-readouts.test.ts` ("explains every readout of every kind in one sentence") cover them.
 - Guide page: every tool, what it does, its controls and readouts; how the bench models light as rays (straight lines, Snell's law and total internal reflection, Fresnel partial reflection and polarization, Sellmeier dispersion and white light as 7 wavelengths, ray stopping rules, 2D and 3D-equivalent brightness, eye path analysis, the thick-lens and mirror formulas) with each assumption stated — landed: the Guide dialog in `Guide.tsx` opens from the header, with entries in `guide-entries.ts`; `guide-entries.test.ts` fails when a kind has no entry; `a11y.spec.ts` covers the Guide, and keys pressed inside it do not reach the bench.
 
-Lens and mirror shapes (milestone 3)
+Lens and mirror shapes
 
 - Concave (diverging) and meniscus (concavo-convex, moon-shaped) lenses: each face has its own
   signed radius or is flat — done when: an oracle checks a biconcave lens's negative focal
@@ -131,7 +131,7 @@ Lens and mirror shapes (milestone 3)
   arcs — done when: a custom shape built from two arcs traces the same rays as the matching
   standard lens within 1e-6 mm.
 
-Learn playlist (milestone 4)
+Learn playlist
 
 - Moved up from Nice to have: without guidance a newcomer cannot build a scene like the
   magnifier, so there would be no shared links to learn from.
@@ -148,7 +148,7 @@ Learn playlist (milestone 4)
 - Lessons on real images, the magnifier and the spoon use the image arrows and their
   orientation labels from milestone 2's "Images without an eye".
 
-Physical eye, vision and camera (milestone 5)
+Physical eye, vision and camera
 
 - Camera view on a flat virtual sensor with a projection switch: rectilinear (`f·tan θ`,
   default), equidistant (`f·θ`), stereographic (`2f·tan(θ/2)`) — done when: a straight edge
@@ -173,7 +173,7 @@ Physical eye, vision and camera (milestone 5)
 - Offline PWA with `vite-plugin-pwa` — done when: a Playwright test loads the site, goes
   offline, reloads, and the last scene opens; the app is installable from the browser.
 
-Rough surfaces (milestone 6)
+Rough surfaces
 
 - Roughness from 0 (polished) to 1 (matte) on mirrors, lenses and blockers, so a rough surface
   scatters light and the eye sees it as an object. Rays do not multiply at each rough hit:
@@ -183,7 +183,7 @@ Rough surfaces (milestone 6)
   fully rough surface follows Lambert's cosine law within 2 % in an oracle, the eye sees a lit
   matte blocker, and the responsiveness budgets of milestone 1 hold with one rough surface.
 
-Wave lab (milestone 7)
+Wave lab
 
 - Single slit, double slit and grating with wavelength, slit width, separation, slit count and
   screen distance; exact Huygens–Fresnel sum with `1/√r` amplitude and `(1 + cos θ)/2`
@@ -202,7 +202,7 @@ Wave lab (milestone 7)
 - Wave lessons in the Learn playlist and a wave section in the Guide page, built like the ray
   ones — done when: each wave lesson can be finished in a Playwright test.
 
-GRIN glass and ray-mode grating (milestone 8)
+GRIN glass and ray-mode grating
 
 - Gradient-index glass with an RK4 ray solver and Fresnel reflections at its boundary — done
   when: a GRIN object with a constant index matches homogeneous glass within 1e-6 mm; a
@@ -212,7 +212,7 @@ GRIN glass and ray-mode grating (milestone 8)
   intensities come from the wave theory of the same grating — done when: order shares agree
   with the wave lab's Fraunhofer values for the same grating within 1 %.
 
-Ripple view (milestone 9)
+Ripple view
 
 - GPU wave grid on p5 WEBGL framebuffers showing waves spreading from the wave lab setup, with
   enlarged wavelengths and a visible "for watching, not measuring" note — done when: it runs
@@ -275,28 +275,6 @@ Ripple view (milestone 9)
   about") are each a Must do item above: Ray Optics #374, #113, #370, #149, #50, #69, #121;
   PhET Bending Light #433 and its single-polarization intensity; Falstad's missing touch;
   3DOptix's limited offline use.
-
-## Milestones
-
-Milestones are a build order, not dates; each ends deployed and usable.
-
-1. Ray bench — the workspace, engine package and web app on the new stack with all twelve
-   object kinds, full ray physics, eye path analysis with fixed exposure, scene links, browser
-   storage, undo and redo, touch, WCAG AA, the ray oracles in CI, bounded scene fields,
-   deployed on Vercel. Users can test the eye hypothesis from this release.
-2. Beginner bench — clean slate, free placement, tooltips, grid and snapping, the readable eye,
-   images shown without an eye, lenses set by focal length, the teaching detector, the Guide
-   page.
-3. Lens and mirror shapes — concave and meniscus lenses, custom 2D shapes.
-4. Learn playlist — guided, replayable ray lessons.
-5. Physical eye, vision and camera — the model eye, vision conditions with spectacles and
-   suggested power, colour vision deficiency, camera projections, the offline PWA.
-6. Rough surfaces — scattering that lets the eye see matte objects, within the speed budgets.
-7. Wave lab — slits and gratings with the Huygens sum, Fraunhofer overlay, measured-vs-theory
-   panel and regime warning; the wave oracles in CI; the Rays / Waves switch; wave lessons.
-8. GRIN glass and ray-mode grating — RK4 solver with boundary reflections; grating orders with
-   wave-theory intensities.
-9. Ripple view — GPU wave grid for watching waves spread.
 
 ## Two-year shape
 
