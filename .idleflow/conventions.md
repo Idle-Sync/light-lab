@@ -69,7 +69,7 @@ first time docs are turned on.
 
 ignore_in: exclude
 
-Where idleflow writes its own ignore rules (`.claude/runs/`, a local `docs/`). `exclude` uses
+Where idleflow writes its own ignore rules (`.idleflow/runs/`, a local `docs/`). `exclude` uses
 `.git/info/exclude`: local to this clone, so nothing about idleflow appears in a committed file.
 `gitignore` uses `.gitignore`: shared with every clone and visible to everyone who reads the repo.
 Until it is answered, rules go to `.git/info/exclude`. A stack's own entries (`node_modules/`,

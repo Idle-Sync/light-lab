@@ -7,7 +7,7 @@ after every run so it never goes stale. Paths, not prose. Under 80 lines.
 ## Start here
 - `prd.md` — what this project is and is not, must-do items with their tests, milestones
 - `progress.md` — what has landed and what is next
-- `.claude/conventions.md` — how code is written here, stack and library decisions, tooling
+- `.idleflow/conventions.md` — how code is written here, stack and library decisions, tooling
 - `CLAUDE.md` — working rules for every Claude Code session in this repo
 - `docs/handoffs/handoff_02.md` — what the next session does first
 - `docs/sessions/s_0005.md` — the latest session note; `docs/sessions/` holds the rest
@@ -46,7 +46,7 @@ after every run so it never goes stale. Paths, not prose. Under 80 lines.
   - `docs/handoffs/` — what the next session does first, one file per handoff
   - `docs/sessions/` — one note per session, `TEMPLATE.md` for new ones
 - `.github/workflows/ci.yml` — CI: a check job (`pnpm check`) and an e2e job
-- `.claude/conventions.md`, `.claude/lessons.md` — conventions and lessons recorded by idleflow runs
+- `.idleflow/conventions.md`, `.idleflow/lessons.md` — conventions and lessons recorded by idleflow runs
 - `playwright.config.ts`, `vercel.json` — browser test setup; Vercel build and install config
 - `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml` — workspace root, members, lockfile
 - `tsconfig.base.json`, `biome.json` — shared TypeScript and lint/format settings

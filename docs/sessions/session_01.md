@@ -21,7 +21,7 @@ From an idea ("a light simulator like phydemo, but modern and accurate") to mile
 
 1. **Prototype artifact**: https://claude.ai/artifact/BgtvfeScDSRTSffJxucuqP (ray bench with eye, wave lab). Its code is split by module under `reference/`.
 2. **Research**: `docs/market-research.md` (verdict: crowded; competitors' complaints became must-do items), stack, library and tooling research in `docs/research/`.
-3. **Project setup** with `/idleflow:init`: `prd.md` (5 milestones), `CLAUDE.md`, `.claude/conventions.md`, `progress.md`, `index.md`, `README.md`, `LICENSE`.
+3. **Project setup** with `/idleflow:init`: `prd.md` (5 milestones), `CLAUDE.md`, `.idleflow/conventions.md`, `progress.md`, `index.md`, `README.md`, `LICENSE`.
 4. **Milestone 1, the ray bench** with `/idleflow:feature` (run `20261026-163917-milestone-1-ray-bench`, size L, six tasks):
 
 | Task | What landed |

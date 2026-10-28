@@ -242,7 +242,7 @@ Ripple view (milestone 9)
 - Translations — table stakes for PhET and Ray Optics (`docs/market-research.md`, "What users
   praise") but every string would have to be stable first; after v1.
 - SVG export — praised in Ray Optics; waits until the renderer settles after the ripple view.
-- A pre-commit hook or a justfile — CI runs the same checks; declined in `.claude/conventions.md`.
+- A pre-commit hook or a justfile — CI runs the same checks; declined in `.idleflow/conventions.md`.
 - Astigmatism — it needs an eye that focuses differently in two directions, and a 2D bench
   has one.
 - Lens suggestions for colour vision deficiency — no lens power corrects it.
@@ -251,7 +251,7 @@ Ripple view (milestone 9)
 
 ## Constraints
 
-- Stack (`.claude/conventions.md`, "Stack decisions"): pnpm workspace with engine package and
+- Stack (`.idleflow/conventions.md`, "Stack decisions"): pnpm workspace with engine package and
   web app, pnpm pinned by `devEngines.packageManager` [P1]; Node 24 in `.node-version` and
   `engines` [P2]; biome, `tsc --strict --noEmit`, vitest [P3]; `vite-plugin-pwa` with
   `autoUpdate` [P4]; one GitHub Actions workflow running biome, tsc and vitest [P5]; worker via
@@ -270,7 +270,7 @@ Ripple view (milestone 9)
   browser.
 - Accessibility: WCAG AA, checked on every interface change.
 - Tooling: playwright, chrome-devtools-mcp, a11y-enforcer-wcag-accessibility-checker and the
-  vercel plugin, each for the job named in `.claude/conventions.md` "Tooling".
+  vercel plugin, each for the job named in `.idleflow/conventions.md` "Tooling".
 - Competitor complaints the product answers (`docs/market-research.md`, "What users complain
   about") are each a Must do item above: Ray Optics #374, #113, #370, #149, #50, #69, #121;
   PhET Bending Light #433 and its single-polarization intensity; Falstad's missing touch;

@@ -6,7 +6,7 @@ CI on 0527b77 (run 40515777853) is red. The `check` job passed. The `e2e` job pa
 
 ## Do first, in order
 
-1. **Restart Claude Code.** Two idleflow versions (0.1.5 and 0.1.7) were active together this session: the 0.1.5 worktree guard refused the 0.1.7 implementers' `.claude-run/result.md` on a retry. A restart loads 0.1.7 throughout.
+1. **Restart Claude Code.** Two idleflow versions (0.1.5 and 0.1.7) were active together this session: the 0.1.5 worktree guard refused the 0.1.7 implementers' `.idleflow-run/result.md` on a retry. A restart loads 0.1.7 throughout.
 2. **Make CI green.** `/idleflow:fix "the engine budget e2e test exceeds Playwright's 30 s timeout on the GitHub runner"`. Start by finding where the test spends its time on CI. Every engine update now also runs the images pass (`imagesOf` in `apps/web/src/engine-worker.ts`). Raising the test timeout without a reason is not a fix.
 3. **Fix intermediate images in a lens chain.** `/idleflow:fix "an intermediate image that a later optic intercepts is drawn and labelled Real image"`. In a two-lens line the first lens's image is labelled "Real image" although the second lens catches the light before it forms. The rule that decides real or virtual ignores where the segment ends (`packages/engine/src/images.ts`; review note in the run's `review/T1-correct.1.md`, quoted in `docs/sessions/s_0005.md`).
 4. **Check the app by eye.** `pnpm dev`, open the magnifier example, and turn Show images on and off. Select the detector in the bench example to see its verdict, white-card strip and graph. Hover each toolbar tool, and open the Guide from the header.
@@ -39,4 +39,4 @@ CI on 0527b77 (run 40515777853) is red. The `check` job passed. The `e2e` job pa
 - `progress.md`, `docs/sessions/s_0005.md`: what milestone 2 landed
 - `docs/sessions/s_0004.md`: the bounded scene fields and the eye-budget fix
 - `prd.md`: milestones 3 to 9 and every "done when"
-- `.claude/lessons.md`: size timing budgets against the CI reading, not the local one
+- `.idleflow/lessons.md`: size timing budgets against the CI reading, not the local one
