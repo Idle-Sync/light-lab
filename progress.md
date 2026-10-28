@@ -86,6 +86,12 @@ their "done when" live in `prd.md`.
 
 <!-- progress start -->
 
+## 2026-10-28 — session end
+
+- Landed: the throttling page under the console gate (8cfdfaf), intercepted real images hidden (f4edcc0), and the rule written into `prd.md` in place of the known-gap sentence (66e94ec).
+- Next: `git push` (12 commits) and confirm CI on master.
+- Then: link Vercel and deploy, closing milestone 1.
+
 ## 2026-10-28 — An intermediate image that a later optic intercepts is drawn and labelled "Real image" (run 20261028-164942-intermediate-image-real-label, Sayantan)
 
 - Landed: a real image is hidden when every ray of its light path ends at a surface before the rays meet; in a two-lens line only the chain's final image is drawn and labelled, with its kind, orientation and size unchanged (`packages/engine/src/images.ts`, `images.test.ts`). Merged locally as `f4edcc0`, not pushed. Showing the intermediate image as a virtual object was not built.

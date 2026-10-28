@@ -11,7 +11,7 @@ everything outside the markers.
 - `.idleflow/conventions.md` — how code is written here, stack and library decisions, tooling
 - `CLAUDE.md` — working rules for every Claude Code session in this repo
 - `docs/handoffs/handoff_02.md` — what the next session does first
-- `docs/sessions/s_20261028-1717-sayantan.md` — the latest session note; `docs/sessions/` holds the rest
+- `docs/sessions/s_20261028-1822-sayantan.md` — the latest session note; `docs/sessions/` holds the rest
 
 ## Layout
 <!-- idleflow:generated files -->
