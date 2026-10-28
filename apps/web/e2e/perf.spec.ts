@@ -123,18 +123,43 @@ async function workerSlowdown(page: Page, session: CDPSession): Promise<number> 
   return slowdown;
 }
 
-test('the engine stays inside its budget at a 4x slower CPU', async ({ page }) => {
-  const slowdown = await workerSlowdown(page, await page.context().newCDPSession(page));
+/**
+ * Prints how long a phase of the budget test took and records it as an annotation. Printed as
+ * each phase ends, so a run that hits the test timeout still shows the phases that finished.
+ */
+function reportPhaseTime(name: string, startMs: number): void {
+  const description = `phase ${name} ${Date.now() - startMs} ms`;
+  console.log(description);
+  test.info().annotations.push({ type: 'phase times', description });
+}
 
+test('the engine stays inside its budget at a 4x slower CPU', async ({ page }) => {
+  const testStart = Date.now();
+  const slowdown = await workerSlowdown(page, await page.context().newCDPSession(page));
+  reportPhaseTime('workerSlowdown', testStart);
+
+  const benchStart = Date.now();
   await openForNudging(page, examples.bench, 9);
   expect((await medianTiming(page, 'data-trace-ms')) * slowdown).toBeLessThan(20);
+  reportPhaseTime('bench', benchStart);
 
+  const denseSourceStart = Date.now();
   await openForNudging(page, benchWithDenseSource, 9);
   expect((await medianTiming(page, 'data-trace-ms')) * slowdown).toBeLessThan(60);
+  reportPhaseTime('dense-source bench', denseSourceStart);
 
   // Nudging the eye (id 3) reanalyses what it sees.
+  const ballEyeStart = Date.now();
   await openForNudging(page, examples.ball, 3);
   expect((await medianTiming(page, 'data-eye-ms')) * slowdown).toBeLessThan(100);
+  reportPhaseTime('ball eye', ballEyeStart);
+
+  const totalMs = Date.now() - testStart;
+  const total = `budget test total ${totalMs} ms`;
+  console.log(total);
+  test.info().annotations.push({ type: 'phase times', description: total });
+  // Kept under the 30 s test timeout, so a run drifting towards it fails here with its total.
+  expect(totalMs).toBeLessThan(25_000);
 });
 
 test('the magnifier eye analysis stays inside its budget at a 4x slower CPU', async ({ page }) => {
