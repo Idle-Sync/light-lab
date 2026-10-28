@@ -7,7 +7,8 @@ to `/idleflow:*` runs.
 
 ## Start of every session
 
-1. Read `progress.md`, then the newest two files in `docs/sessions/` (`s_0001.md`, `s_0002.md`, …).
+1. Read `progress.md`, then the newest two files in `docs/sessions/` by name (notes named
+   `s_<YYYYMMDD-HHMM>-<author>.md` sort after the older `s_0001.md`, `s_0002.md`, …).
    That is where the last sessions left off. Do not start from the code; start from these.
 2. **Ground the docs before anything else.** Check every claim in `index.md`, `prd.md`,
    `progress.md`, `README.md`, this file and `docs/**/*.md` against the code: a path that no
@@ -20,8 +21,9 @@ to `/idleflow:*` runs.
 
 ## End of every session
 
-1. Write `docs/sessions/s_NNNN.md` (next number, four digits) from `docs/sessions/TEMPLATE.md`:
-   what was done, which files changed and why, what is next, open questions. Short; paths, not prose.
+1. Write `docs/sessions/s_<YYYYMMDD-HHMM>-<your git name>.md` from `docs/sessions/TEMPLATE.md`
+   (time and author, so two people never pick the same name): what was done, which files
+   changed and why, what is next, open questions. Short; paths, not prose.
 2. Add an entry at the top of `progress.md` and bring `index.md` up to date if any file or
    directory a newcomer must know about was added, moved or removed.
 3. Commit the notes together with the work.
