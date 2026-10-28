@@ -1,5 +1,6 @@
 import { type Point, toBench } from './geometry';
 import type { Scene, SceneObject } from './scene';
+import { noHitLength } from './spatial-grid';
 import { followRays, type TracedRay } from './trace';
 
 /** Most image arrows one scene shows. */
@@ -35,6 +36,12 @@ export interface ImageArrow {
 }
 
 type ExtendedObject = Extract<SceneObject, { kind: 'object' }>;
+
+/** A traced ray and how far it goes before the next surface, or `noHitLength` past none. */
+interface AirSegment {
+  ray: TracedRay;
+  length: number;
+}
 
 /** Where one end's rays along one path meet, or seem to spread from. */
 interface EndImage {
@@ -168,14 +175,14 @@ function arrowsThrough(
 
 /** The segments outside glass that have met a surface, per end and by path. */
 function airRaysByPath(traced: Scene) {
-  const baseRays = new Map<string, TracedRay[]>();
-  const tipRays = new Map<string, TracedRay[]>();
+  const baseRays = new Map<string, AirSegment[]>();
+  const tipRays = new Map<string, AirSegment[]>();
   followRays(traced, 'drawing', {
-    onSegment(ray) {
+    onSegment(ray, length) {
       if (ray.path === '' || !isInAir(ray.path)) return;
       const groups = ray.sourceId === baseSourceId ? baseRays : tipRays;
       const group = groups.get(ray.path) ?? [];
-      group.push(ray);
+      group.push({ ray, length });
       groups.set(ray.path, group);
     },
     onDetector() {},
@@ -205,10 +212,11 @@ function cross(a: Point, b: Point): number {
 
 /**
  * The least-squares meeting point of rays leaving the last surface, extended backwards when
- * they spread. Null for fewer than two rays, parallel rays, or a point past `farthestImage`.
+ * they spread. Null for fewer than two rays, parallel rays, a point past `farthestImage`, or
+ * rays that a surface stops before they meet.
  */
-function endImage(rays: TracedRay[]): EndImage | null {
-  if (rays.length < 2) return null;
+function endImage(segments: AirSegment[]): EndImage | null {
+  if (segments.length < 2) return null;
   let a11 = 0;
   let a12 = 0;
   let a22 = 0;
@@ -218,7 +226,7 @@ function endImage(rays: TracedRay[]): EndImage | null {
   let directionY = 0;
   let fromX = 0;
   let fromY = 0;
-  for (const ray of rays) {
+  for (const { ray } of segments) {
     // (I - d dᵀ) projects onto the normal of the ray; summing it over the rays gives the normal
     // equations for the point closest to all of them, as the eye analysis does.
     const m11 = 1 - ray.dx * ray.dx;
@@ -234,7 +242,7 @@ function endImage(rays: TracedRay[]): EndImage | null {
     fromX += ray.x;
     fromY += ray.y;
   }
-  const count = rays.length;
+  const count = segments.length;
   const determinant = a11 * a22 - a12 * a12;
   if (determinant <= 1e-12 * count * count) return null;
 
@@ -247,20 +255,35 @@ function endImage(rays: TracedRay[]): EndImage | null {
   const directionLength = Math.hypot(directionX, directionY);
   const direction = { x: directionX / directionLength, y: directionY / directionLength };
   const ahead = (point.x - from.x) * direction.x + (point.y - from.y) * direction.y;
+  if (ahead > 0 && isStoppedBefore(segments, point)) return null;
   return {
     point,
     from,
     direction,
     kind: ahead > 0 ? 'real' : 'virtual',
-    squaredDistanceSum: squaredDistanceSum(rays, point),
+    squaredDistanceSum: squaredDistanceSum(segments, point),
     rayCount: count,
   };
 }
 
+/**
+ * Whether every segment ends at a surface before reaching `point`. Each ray is checked on its
+ * own: rays from one end enter the next surface at different heights.
+ */
+function isStoppedBefore(segments: AirSegment[], point: Point): boolean {
+  for (const { ray, length } of segments) {
+    // A ray that hits nothing travels on past the drawn `noHitLength`.
+    if (length === noHitLength) return false;
+    const along = (point.x - ray.x) * ray.dx + (point.y - ray.y) * ray.dy;
+    if (along <= length) return false;
+  }
+  return true;
+}
+
 /** Sum over the rays of the squared distance from `point` to each ray's line. */
-function squaredDistanceSum(rays: TracedRay[], point: Point): number {
+function squaredDistanceSum(segments: AirSegment[], point: Point): number {
   let sum = 0;
-  for (const ray of rays) {
+  for (const { ray } of segments) {
     const offsetX = point.x - ray.x;
     const offsetY = point.y - ray.y;
     const along = offsetX * ray.dx + offsetY * ray.dy;
