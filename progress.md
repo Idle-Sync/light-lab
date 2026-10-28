@@ -86,6 +86,13 @@ their "done when" live in `prd.md`.
 
 <!-- progress start -->
 
+## 2026-10-28 — The throttling-check page runs under the console gate (run 20261028-155412-perf-beforeall-page-gate, Sayantan)
+
+- Landed: the page the worker throttling check opens in `beforeAll` fails the file on a console error, warning or uncaught exception, and closes whether or not the check throws (`apps/web/e2e/perf.spec.ts`, `test.ts`, `console-gate.spec.ts`). Merged locally as `8cfdfaf`, not pushed.
+- Checks: `pnpm check` green (198 tests); `pnpm e2e` 29 of 29 locally; CI on the task branch run 40677992361 29 of 29, throttling line printed, no `error:`, `warning:` or `uncaught:` lines.
+- Unblocks: review findings F1 and F2 of run 20261028-142214-perf-tests-ci-flaky are closed.
+- Next: push master and confirm CI on the merge commit; then the lens-chain intermediate image fix.
+
 ## 2026-10-28 — The engine budget e2e tests fail intermittently on the GitHub runner (run 20261028-142214-perf-tests-ci-flaky, Sayantan)
 
 - Landed: every budget test in `apps/web/e2e/perf.spec.ts` prints its reading and budget on a pass; the image-arrows budget is 55 ms, twice the largest of three CI readings (25.6 ms). The earlier branch is merged: 25 s cap on the scene tests, `list` reporter, worker throttling check, one test per scene. Merge `8ecf75f` is pushed; CI on master `cfd79ed` (run 40671310082) passed both jobs, 27 of 27.
