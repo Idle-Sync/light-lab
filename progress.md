@@ -86,6 +86,14 @@ their "done when" live in `prd.md`.
 
 <!-- progress start -->
 
+## 2026-10-28 — idleflow set up (run 20261028-141927-setup)
+
+- Readability mode `balanced`; project docs on and in git; lessons in `.idleflow/lessons.md`.
+- Repo commands in `.idleflow/conventions.md` "Repo fit": gate `pnpm check`, worktree setup `corepack pnpm install --frozen-lockfile`, preview `pnpm dev --port 5173 --strictPort` at `http://localhost:5173`.
+- `index.md` layout, commands, milestones and dependencies are generated blocks kept by `run.sh docs`.
+- Stack (13 decisions) and tooling (17 entries) were already recorded; nothing installed.
+- Next: the engine budget e2e tests on CI, building on branch `idleflow/20261028-124429-engine-budget-e2e-timeout/T1`.
+
 ## 2026-10-27 — Milestone 2: beginner bench (run 20261027-163103-milestone-2-beginner-bench-rest)
 
 - Images without an eye: each extended object is imaged through mirrors, lenses and balls, virtual images dashed and real ones solid, with kind, orientation and size labels; a Show images switch saves in the scene, which is now scene format v3 (`packages/engine/src/images.ts`, `apps/web/src/bench/draw-images.ts`, `scene.ts`, `migrate.ts`). Capped at 50 object–optic pairs and 80 arrows.

@@ -71,6 +71,77 @@ Where the lessons file lives. `idleflow` keeps it at `.idleflow/lessons.md`; `do
 `docs/lessons.md`, next to the research and session notes. Either way it is committed and the
 whole team reads the same lessons. Unset means `.idleflow/`. Asked once, when docs are on.
 
+## Records
+
+Where this repo keeps the records idleflow reads and writes. The defaults are idleflow's own files;
+a repo that already keeps these somewhere points idleflow at them instead of getting a second set.
+`run.sh path <name>` resolves each one. Unset or missing lines mean the default.
+
+progress_file: progress.md
+index_file: index.md
+index_rewrite: yes
+sessions_dir: docs/sessions
+session_names: time-author
+time_log: .idleflow/time-log.md
+shared_files: none
+
+- `progress_file`, `index_file`, `sessions_dir`, `time_log`: relative paths inside the repo.
+- `index_rewrite`: `yes` lets the retro rewrite the index after a run; `no` leaves it to the
+  repo's own process (tasks add their rows through `shared_files`).
+- `session_names`: `time-author` (`s_<YYYYMMDD-HHMM>-<author>.md`, safe with several writers),
+  `per-person` (`<person>/s_0001.md`: each person numbers their own folder, so nothing collides; the
+  folder is the GitHub login, or `git config idleflow.person <name>` to name it), or `numbered`
+  (`s_0001.md`, ...; two writers can pick the same number).
+- `shared_files`: space-separated paths every task may add its own lines to, such as `CHANGELOG.md`
+  or an index the repo's checks require a row in for each new file. No task owns them, they merge by
+  union, and a task changes only the lines it adds.
+
+## Talking to the human
+
+language: auto
+tone: plain
+
+How idleflow talks to the human (`procedures/talking.md` in the plugin). `language`: `auto` replies
+in the language the human writes in, or a language name to always use it; files, commits and code keep
+the repo's language. `tone`: `plain` (direct, no filler), `friendly` (plain, warmer), `terse` (fewest
+words). Internal ids (T2, R3, C1) are never shown on their own in any tone.
+
+## Repo fit
+
+How idleflow fits a repo that already has its own rules. Unset or missing lines keep idleflow's
+defaults. A command here (`worktree_setup`, `gate`) runs only as committed, and only after each
+person approved that exact text on their own clone (`run.sh approve <key>`, kept in local git
+config); a changed command is asked about again.
+
+worktrees_in: sibling
+worktree_setup: corepack pnpm install --frozen-lockfile
+commit_format: idleflow
+gate: pnpm check
+gate_quick: none
+gate_runs: every-task
+preview: pnpm dev --port 5173 --strictPort
+preview_url: http://localhost:5173
+
+- `worktrees_in`: `sibling` puts task worktrees next to the repo (`<repo>__wt/<task>`); `inside` puts
+  them in `.idleflow/worktrees/` (ignored), for projects that must not write outside their own folder.
+  Tools that scan hidden folders may then see the worktrees.
+- `worktree_setup`: one shell command run in every new task worktree before the implementer starts
+  (link large shared folders, copy fixtures); `$MAIN` is the main checkout, `$WORKTREE` the new one.
+  A failure, or a change to a tracked file, stops the worktree.
+- `gate`: the one command that says whether the repo is healthy (its own check script, `make check`,
+  `npm test`). Set, it is the definition of done: run on the base before building, by each implementer
+  after its last change, by the correctness reviewer, and after the merge.
+- `gate_runs`: `every-task` runs the gate on the base, for each task and after the merge; `once` (for a
+  gate slower than `SLOW_GATE_SECONDS`) runs `gate_quick` for each task and the full gate once after the
+  merge, checking the base only if that fails. `gate_quick` follows the same approval rule as `gate`.
+- `preview` and `preview_url`: the command that serves the app from a checkout (`npm run dev -- --port 4173`)
+  and the address it serves, which must be on this machine (`http://localhost:<port>`). The design
+  reviewer starts it in a task's worktree only through `run.sh preview`, to take screenshots at phone and
+  desktop widths when a browser tool is available. Same approval rule as `gate`.
+- `commit_format`: `idleflow` (task commits `T1: ...`, merges `idleflow: merge T1 (<run>)`) or
+  `conventional` (Conventional Commits subjects of at most 72 characters for task, finish and merge
+  commits, run and task ids in the body), for repos whose CI checks commit subjects.
+
 ## Ignore rules
 
 ignore_in: exclude

@@ -1,0 +1,1 @@
+- declined: session_names -> per-person (setup, 2026-10-28)
